@@ -1,0 +1,16 @@
+
+
+.login-email-input::placeholder,
+.login-password-input::placeholder {
+  color: #EDD8C1 !important;
+  opacity: 1;
+}
+
+.p-inputtext:enabled:focus{
+  border-color: #EDD8C1 !important;
+  box-shadow: 0 0 0 0.2rem rgba(237, 216, 193, 0.25) !important;
+}
+
+.p-inputtext::placeholder{
+  color: #EDD8C1 !important;
+}
