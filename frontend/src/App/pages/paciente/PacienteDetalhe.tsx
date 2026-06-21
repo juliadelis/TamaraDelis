@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { getPatientById, getPatientRecord } from '../../../shared/services/patient';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Dialog } from 'primereact/dialog';
+import { IoTrashOutline } from 'react-icons/io5';
+import { deletePatientRecord, getPatientById, getPatientRecord } from '../../../shared/services/patient';
 import type { PatientRecord } from '../../../shared/models/patient.model';
 
 const tabs = ['Resumo', 'Sessões', 'Financeiro', 'Prontuário'] as const;
@@ -191,22 +193,41 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
   ];
 }
 
-function PatientHeader({ record }: { record: PatientRecord | null }) {
+function PatientHeader({
+  record,
+  onDeleteClick,
+}: {
+  record: PatientRecord | null;
+  onDeleteClick: () => void;
+}) {
   const name = record?.fullName || 'Paciente';
   const initial = name.trim().charAt(0).toUpperCase() || 'P';
   const age = calculateAge(record?.birthDate ?? '');
 
   return (
-    <div className="flex items-center gap-5">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#6A3710] text-2xl font-medium text-white">
-        {initial}
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-5">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#6A3710] text-2xl font-medium text-white">
+          {initial}
+        </div>
+        <div className="min-w-0">
+          <h1 className="truncate text-[22px] font-bold leading-tight text-[#111111]">
+            {name}
+          </h1>
+          {age ? <p className="mt-2 text-[15px] text-[#111111]">{age}</p> : null}
+        </div>
       </div>
-      <div className="min-w-0">
-        <h1 className="truncate text-[22px] font-bold leading-tight text-[#111111]">
-          {name}
-        </h1>
-        {age ? <p className="mt-2 text-[15px] text-[#111111]">{age}</p> : null}
-      </div>
+      {record ? (
+        <button
+          type="button"
+          onClick={onDeleteClick}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[#B42318] text-[#B42318] transition hover:bg-[#FEE4E2]"
+          aria-label="Excluir paciente"
+          title="Excluir paciente"
+        >
+          <IoTrashOutline size={20} />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -265,9 +286,12 @@ function ProntuarioView({ record }: { record: PatientRecord | null }) {
 
 export const PacienteDetalhe = () => {
   const { patientId } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>('Prontuário');
   const [record, setRecord] = useState<PatientRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const summaryFields = useMemo(
     () => [
@@ -299,10 +323,27 @@ export const PacienteDetalhe = () => {
     loadData();
   }, [patientId]);
 
+  const handleDeletePatient = async () => {
+    if (!record) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deletePatientRecord(record.id);
+      setDeleteDialogVisible(false);
+      navigate('/pacientes');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="py-2">
       <div className="mx-auto max-w-[370px] bg-white px-6 py-4 text-left sm:max-w-2xl">
-        <PatientHeader record={record} />
+        <PatientHeader record={record} onDeleteClick={() => setDeleteDialogVisible(true)} />
 
         <div className="mt-6 grid grid-cols-4 border-b border-[#D79A69]">
           {tabs.map((tab) => (
@@ -357,6 +398,43 @@ export const PacienteDetalhe = () => {
           )}
         </div>
       </div>
+
+      <Dialog
+        header="Excluir paciente"
+        visible={deleteDialogVisible}
+        onHide={() => {
+          if (!deleting) {
+            setDeleteDialogVisible(false);
+          }
+        }}
+        modal
+        className="mx-4 w-full max-w-md"
+        draggable={false}
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setDeleteDialogVisible(false)}
+              className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6] disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={handleDeletePatient}
+              className="rounded-md bg-[#B42318] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8F1D14] disabled:opacity-60"
+            >
+              {deleting ? 'Excluindo...' : 'Excluir'}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-sm leading-6 text-[#31231A]">
+          Tem certeza que deseja excluir {record?.fullName || 'este paciente'}? Essa ação não pode ser desfeita.
+        </p>
+      </Dialog>
     </div>
   );
 };

@@ -38,3 +38,14 @@ export async function savePatientRecord(record: Partial<PatientRecord> & { id?: 
 
   return response.json() as Promise<PatientRecord>;
 }
+
+export async function deletePatientRecord(id: string) {
+  const response = await fetch(`${API_URL}/api/patients/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao excluir paciente.');
+  }
+}

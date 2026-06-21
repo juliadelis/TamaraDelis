@@ -327,4 +327,14 @@ router.put('/:id', async (req, res) => {
   return res.json(rowToPatient(data as PatientRow));
 });
 
+router.delete('/:id', async (req, res) => {
+  const { error } = await supabase.from('patients').delete().eq('id', req.params.id);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(204).send();
+});
+
 export default router;
