@@ -44,6 +44,11 @@ export const formatDayOfWeek = (date: Date): string => {
   return days[date.getDay()];
 };
 
+export const formatDayName = (date: Date): string => {
+  const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  return days[date.getDay()];
+};
+
 /**
  * Verifica se duas datas são o mesmo dia
  */
@@ -53,6 +58,34 @@ export const isSameDay = (date1: Date, date2: Date): boolean => {
     date1.getMonth() === date2.getMonth() &&
     date1.getFullYear() === date2.getFullYear()
   );
+};
+
+export const getMonthName = (month: number): string => {
+  const months = [
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+  ];
+  return months[month] || '';
+};
+
+export const getDaysInMonth = (year: number, month: number): number => {
+  return new Date(year, month + 1, 0).getDate();
+};
+
+export const formatDateLong = (date: Date): string => {
+  const day = date.getDate();
+  const monthName = getMonthName(date.getMonth());
+  return `${day} de ${monthName}`;
 };
 
 /**

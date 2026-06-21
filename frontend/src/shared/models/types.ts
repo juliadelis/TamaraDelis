@@ -1,13 +1,89 @@
+export type { Patient } from "./patient.model";
+import type { Patient } from "./patient.model";
 
 
 export type PatientStatus = 'present' | 'absent' | 'rescheduled' | 'pending';
 
-export interface Patient {
+
+export interface SessionConflict {
+  internal: boolean;
+  external: boolean;
+}
+
+export interface ConflictSectors {
+  family: SessionConflict;
+  social: SessionConflict;
+  organic: SessionConflict;
+  work: SessionConflict;
+  relationship: SessionConflict;
+}
+
+export interface CongruenceItem {
+  label: string;
+  selected: boolean;
+}
+
+export interface PsychicDynamics {
+  congruence: CongruenceItem[];
+  dominantInstances: string[];
+  excessLack: string[];
+  responsibility: string[];
+  anxietyPoints: string;
+  defenses: {
+    primitive: string[];
+    intermediate: string[];
+    mature: string[];
+  };
+}
+
+export interface ClinicalAnalysis {
+  falseSelf: string[];
+  selfConstancy: string;
+  object: string;
+  objectConstancy: string;
+  realityRelation: string;
+  attachment: string;
+}
+
+export interface PatientRecord {
   id: string;
-  name: string;
-  time: string;
-  status: PatientStatus;
-  details?: string;
+  fullName: string;
+  cpf?: string;
+  birthDate: string;
+  gender: string;
+  maritalStatus: string;
+  profession: string;
+  fatherName?: string;
+  motherName?: string;
+  siblings?: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  mainComplaint: string;
+  nextSession: string;
+  lastSession: string;
+  monthlySessions: string;
+  frequentTags: string[];
+  generalNotes: string;
+  createdAt: string;
+  sessionNumber: string;
+  sessionDate: string;
+  sessionTheme: string;
+  sessionMotives: string;
+  conflictSectors: ConflictSectors;
+  personalityStyle: string;
+  psychicDynamics: PsychicDynamics;
+  clinicalAnalysis: ClinicalAnalysis;
+  treatmentType: string[];
+  interventions: string[];
+  significants: string;
+  fantasyStructure: string;
+  transference: string;
+  countertransference: string;
+  sessionTitle: string;
 }
 
 export interface DaySchedule {

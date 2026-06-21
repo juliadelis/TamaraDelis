@@ -2,12 +2,34 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { login } from '../../../shared/services/auth';
 import "./Login.scss";
 
 export const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (!email || !password) {
+      setError('Preencha email e senha');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao entrar');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="h-screen bg-[#6A3710] grid grid-cols-12 overflow-hidden">
@@ -26,12 +48,15 @@ export const Login = () => {
             <img src="/logo.svg" alt="logo" />
           </div>
           <div className="flex flex-col gap-8 px-9 w-full">
-            <div className="  flex flex-col gap-8 items-center justify-center">
+            <div className="flex flex-col gap-8 items-center justify-center w-full">
               <div className="flex flex-col gap-3 w-full text-left">
                 <label htmlFor="email" className="text-white font-light">
                   Email
                 </label>
                 <InputText
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@email.com"
                   className="w-full p-3 rounded-lg shadow-none border-none text-[#EDD8C1] placeholder-[#EDD8C1]"
                   style={{ backgroundColor: "#502815", borderColor: "#502815", color: "#EDD8C1" }}
@@ -61,9 +86,12 @@ export const Login = () => {
                 </div>
               </div>
 
+              {error && <div className="text-red-200 text-sm">{error}</div>}
+
               <Button
-                onClick={() => navigate("/")}
-                label="Entrar"
+                onClick={handleSubmit}
+                label={loading ? "Entrando..." : "Entrar"}
+                disabled={loading}
                 className="w-full p-3 rounded-lg shadow-none border-none text-[#6A3710]"
                 style={{ backgroundColor: "#EDD8C1", borderColor: "#EDD8C1", color: "#6A3710" }}
               />

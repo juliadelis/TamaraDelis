@@ -1,10 +1,13 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { MainLayout } from "../layout";
 import { Home } from "../pages/home/Home";
+import { Agenda } from "../pages/agenda/Agenda";
+import { Paciente } from "../pages/paciente/Paciente";
+import { PacienteDetalhe } from "../pages/paciente/PacienteDetalhe";
+import { NovoPaciente } from "../pages/paciente/NovoPaciente";
+import { EditarProntuario } from "../pages/paciente/EditarProntuario";
 import { Login } from "../pages/login/Login";
-// import { jwtDecode } from "jwt-decode";
-
-
+import { getAuthToken } from "../../shared/services/auth";
 
 export function routerFactory() {
   return createBrowserRouter([
@@ -16,7 +19,11 @@ export function routerFactory() {
           element: <AuthGuard />,
           children: [
             { path: "", element: <Home /> },
-           
+            { path: "agenda", element: <Agenda /> },
+            { path: "pacientes", element: <Paciente /> },
+            { path: "pacientes/novo", element: <NovoPaciente /> },
+            { path: "pacientes/:patientId", element: <PacienteDetalhe /> },
+            { path: "pacientes/:patientId/editar", element: <EditarProntuario /> },
           ],
         },
       ],
@@ -33,29 +40,10 @@ export function routerFactory() {
 }
 
 function AuthGuard() {
-  // const token = localStorage.getItem("authToken");
-  // if (!token) {
-  //   return <Navigate to="/login" replace />;
-  // }
-
-  try {
-    // const decoded = jwtDecode<{ exp?: number }>(token);
-
-    // if (!decoded.exp) {
-    //   console.warn("Token has no expiration, allowing access");
-    //   return <Outlet />;
-    // }
-
-    // const expirationTime = decoded.exp * 1000;
-    // const currentTime = Date.now();
-
-    // if (expirationTime < currentTime) {
-    //   return <Navigate to="/login" replace />;
-    // }
-
-    return <Outlet />;
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    // return <Navigate to="/login" replace />;
+  const token = getAuthToken();
+  if (!token) {
+    return <Navigate to="/login" replace />;
   }
+
+  return <Outlet />;
 }
