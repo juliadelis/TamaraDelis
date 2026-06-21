@@ -341,8 +341,8 @@ export const PacienteDetalhe = () => {
   };
 
   return (
-    <div className="py-2">
-      <div className="mx-auto max-w-[370px] bg-white px-6 py-4 text-left sm:max-w-2xl">
+    <div className="">
+      <div className="mx-auto bg-white  text-left sm:max-w-2xl">
         <PatientHeader record={record} onDeleteClick={() => setDeleteDialogVisible(true)} />
 
         <div className="mt-6 grid grid-cols-4 border-b border-[#D79A69]">
