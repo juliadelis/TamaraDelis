@@ -173,8 +173,10 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
       items: [
         { label: 'Tipo de falso self', value: joinValues(record.clinicalAnalysis?.falseSelf) },
         { label: 'Constância do self', value: record.clinicalAnalysis?.selfConstancy || emptyValue },
+        { label: 'Anotacao sobre constancia do self', value: record.clinicalAnalysis?.selfConstancyNotes || emptyValue },
         { label: 'Objeto', value: record.clinicalAnalysis?.object || emptyValue },
         { label: 'Constância objetal', value: record.clinicalAnalysis?.objectConstancy || emptyValue },
+        { label: 'Anotacao sobre constancia objetal', value: record.clinicalAnalysis?.objectConstancyNotes || emptyValue },
         { label: 'Relação com a realidade', value: record.clinicalAnalysis?.realityRelation || emptyValue },
         { label: 'Apego', value: record.clinicalAnalysis?.attachment || emptyValue },
       ],

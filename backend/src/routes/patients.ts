@@ -35,8 +35,10 @@ export interface PsychicDynamics {
 export interface ClinicalAnalysis {
   falseSelf: string[];
   selfConstancy: string;
+  selfConstancyNotes?: string;
   object: string;
   objectConstancy: string;
+  objectConstancyNotes?: string;
   realityRelation: string;
   attachment: string;
 }
@@ -145,8 +147,10 @@ const defaultPsychicDynamics: PsychicDynamics = {
 const defaultClinicalAnalysis: ClinicalAnalysis = {
   falseSelf: [],
   selfConstancy: '',
+  selfConstancyNotes: '',
   object: '',
   objectConstancy: '',
+  objectConstancyNotes: '',
   realityRelation: '',
   attachment: '',
 };

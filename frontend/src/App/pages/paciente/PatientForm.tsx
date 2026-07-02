@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 import { savePatientRecord } from '../../../shared/services/patient';
 import type { ConflictSectors } from '../../../shared/models/types';
-import { IoPersonCircleOutline, IoSearch } from 'react-icons/io5';
+import { IoAddCircleOutline, IoPersonCircleOutline, IoSearch } from 'react-icons/io5';
 import { LuBrain, LuSwords } from 'react-icons/lu';
 import { PiPillFill } from 'react-icons/pi';
 import { CgNotes } from 'react-icons/cg';
@@ -59,8 +59,10 @@ const initialFormState: Partial<PatientRecord> = {
   clinicalAnalysis: {
     falseSelf: [],
     selfConstancy: '',
+    selfConstancyNotes: '',
     object: '',
     objectConstancy: '',
+    objectConstancyNotes: '',
     realityRelation: '',
     attachment: '',
   },
@@ -96,10 +98,26 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
     record ? record : initialFormState
   );
   const [loading, setLoading] = useState(false);
+  const [constancyFieldsVisible, setConstancyFieldsVisible] = useState(() =>
+    Boolean(
+      record?.clinicalAnalysis?.selfConstancy ||
+        record?.clinicalAnalysis?.selfConstancyNotes ||
+        record?.clinicalAnalysis?.objectConstancy ||
+        record?.clinicalAnalysis?.objectConstancyNotes
+    )
+  );
 
   useEffect(() => {
     if (record) {
       setFormValues(record);
+      setConstancyFieldsVisible(
+        Boolean(
+          record.clinicalAnalysis?.selfConstancy ||
+            record.clinicalAnalysis?.selfConstancyNotes ||
+            record.clinicalAnalysis?.objectConstancy ||
+            record.clinicalAnalysis?.objectConstancyNotes
+        )
+      );
     }
   }, [record]);
 
@@ -889,35 +907,113 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
                 </label>
               ))}
             </div>
+
+            {constancyFieldsVisible ? (
+              <div className="mt-4 space-y-4 rounded-md border border-[#D8C0A3] bg-[#FFF8ED] p-4">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,220px)_1fr] md:items-end">
+                  <div>
+                    <span className="mb-3 block text-sm font-medium text-[#6A3710]">Constância do Self</span>
+                    <div className="flex gap-6">
+                      {['Sim', 'Não'].map((item) => (
+                        <label key={item} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="selfConstancy"
+                            value={item}
+                            checked={formValues.clinicalAnalysis?.selfConstancy === item}
+                            onChange={(e) => {
+                              setFormValues((prev) => ({
+                                ...prev,
+                                clinicalAnalysis: {
+                                  ...prev.clinicalAnalysis!,
+                                  selfConstancy: e.target.value,
+                                },
+                              }));
+                            }}
+                            className={radioClass}
+                          />
+                          <span className="text-sm text-[#6A3710]">{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="block space-y-2">
+                    <span className="text-sm font-medium text-[#6A3710]">Anotação</span>
+                    <input
+                      value={formValues.clinicalAnalysis?.selfConstancyNotes || ''}
+                      onChange={(e) => {
+                        setFormValues((prev) => ({
+                          ...prev,
+                          clinicalAnalysis: {
+                            ...prev.clinicalAnalysis!,
+                            selfConstancyNotes: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+                      placeholder="Anote detalhes sobre a constância do self"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-[minmax(0,220px)_1fr] md:items-end">
+                  <div>
+                    <span className="mb-3 block text-sm font-medium text-[#6A3710]">Constância Objetal</span>
+                    <div className="flex gap-6">
+                      {['Sim', 'Não'].map((item) => (
+                        <label key={item} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="objectConstancy"
+                            value={item}
+                            checked={formValues.clinicalAnalysis?.objectConstancy === item}
+                            onChange={(e) => {
+                              setFormValues((prev) => ({
+                                ...prev,
+                                clinicalAnalysis: {
+                                  ...prev.clinicalAnalysis!,
+                                  objectConstancy: e.target.value,
+                                },
+                              }));
+                            }}
+                            className={radioClass}
+                          />
+                          <span className="text-sm text-[#6A3710]">{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="block space-y-2">
+                    <span className="text-sm font-medium text-[#6A3710]">Anotação</span>
+                    <input
+                      value={formValues.clinicalAnalysis?.objectConstancyNotes || ''}
+                      onChange={(e) => {
+                        setFormValues((prev) => ({
+                          ...prev,
+                          clinicalAnalysis: {
+                            ...prev.clinicalAnalysis!,
+                            objectConstancyNotes: e.target.value,
+                          },
+                        }));
+                      }}
+                      className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+                      placeholder="Anote detalhes sobre a constância objetal"
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConstancyFieldsVisible(true)}
+                className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-md border border-[#6A3710] px-4 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6]"
+              >
+                <IoAddCircleOutline size={18} />
+                Adicionar constâncias
+              </button>
+            )}
           </div>
 
-          {/* Constância do Self */}
-          <div>
-            <label className="mb-3 block text-sm font-medium text-[#6A3710]">Constância do Self</label>
-            <div className="flex gap-6">
-              {['Sim', 'Não'].map((item) => (
-                <label key={item} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="selfConstancy"
-                    value={item}
-                    checked={formValues.clinicalAnalysis?.selfConstancy === item}
-                    onChange={(e) => {
-                      setFormValues((prev) => ({
-                        ...prev,
-                        clinicalAnalysis: {
-                          ...prev.clinicalAnalysis!,
-                          selfConstancy: e.target.value,
-                        },
-                      }));
-                    }}
-                    className={radioClass}
-                  />
-                  <span className="text-sm text-[#6A3710]">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
 
           {/* Objeto */}
           <div>
@@ -947,35 +1043,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
             </div>
           </div>
 
-          {/* Constância Objetal */}
-          <div>
-            <label className="mb-3 block text-sm font-medium text-[#6A3710]">Constância Objetal</label>
-            <div className="flex gap-6">
-              {['Não', 'Sim'].map((item) => (
-                <label key={item} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="objectConstancy"
-                    value={item}
-                    checked={formValues.clinicalAnalysis?.objectConstancy === item}
-                    onChange={(e) => {
-                      setFormValues((prev) => ({
-                        ...prev,
-                        clinicalAnalysis: {
-                          ...prev.clinicalAnalysis!,
-                          objectConstancy: e.target.value,
-                        },
-                      }));
-                    }}
-                    className={radioClass}
-                  />
-                  <span className="text-sm text-[#6A3710]">{item}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Relação com a Realidade */}
+          {/* Relacao com a Realidade */}
           <div>
             <label className="mb-3 block text-sm font-medium text-[#6A3710]">Relação com a Realidade</label>
             <div className="flex gap-6">
