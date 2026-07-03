@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { MainLayout } from "../layout";
 import { Home } from "../pages/home/Home";
 import { Agenda } from "../pages/agenda/Agenda";
+import { AgendaDia } from "../pages/agenda/AgendaDia";
 import { Paciente } from "../pages/paciente/Paciente";
 import { PacienteDetalhe } from "../pages/paciente/PacienteDetalhe";
 import { NovoPaciente } from "../pages/paciente/NovoPaciente";
@@ -20,6 +21,7 @@ export function routerFactory() {
           children: [
             { path: "", element: <Home /> },
             { path: "agenda", element: <Agenda /> },
+            { path: "agenda/:date", element: <AgendaDia /> },
             { path: "pacientes", element: <Paciente /> },
             { path: "pacientes/novo", element: <NovoPaciente /> },
             { path: "pacientes/:patientId", element: <PacienteDetalhe /> },

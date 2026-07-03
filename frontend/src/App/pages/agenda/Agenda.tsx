@@ -1,10 +1,26 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AgendaCalendar } from './components/AgendaCalendar';
-//import { DayAgenda } from './components/DayAgenda';
-import { getMonthSchedules } from '../../../shared/mocks/mockData';
-// import { getMonthName } from '../../../shared/utils/dateUtils';
+import type { PatientSession } from '../../../shared/models/session.model';
+import { getSessions } from '../../../shared/services/session';
+
+function startOfMonthIso(year: number, month: number) {
+  return new Date(year, month, 1, 0, 0, 0, 0).toISOString();
+}
+
+function endOfMonthIso(year: number, month: number) {
+  return new Date(year, month + 1, 0, 23, 59, 59, 999).toISOString();
+}
+
+function toDateParam(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export const Agenda = () => {
+  const navigate = useNavigate();
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -13,21 +29,33 @@ export const Agenda = () => {
     date.setHours(0, 0, 0, 0);
     return date;
   });
+  const [sessions, setSessions] = useState<PatientSession[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const monthSchedules = useMemo(
-    () => getMonthSchedules(currentYear, currentMonth),
-    [currentMonth, currentYear]
-  );
+  useEffect(() => {
+    const loadSessions = async () => {
+      setLoading(true);
+      try {
+        setSessions(
+          await getSessions({
+            from: startOfMonthIso(currentYear, currentMonth),
+            to: endOfMonthIso(currentYear, currentMonth),
+          })
+        );
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSessions();
+  }, [currentMonth, currentYear]);
 
   const scheduleDays = useMemo(
-    () => monthSchedules.map((item) => item.date.getDate()),
-    [monthSchedules]
+    () => Array.from(new Set(sessions.map((session) => new Date(session.startsAt).getDate()))),
+    [sessions]
   );
-
-  // const selectedDaySchedule = useMemo(
-  //   () => getScheduleForDate(selectedDate, monthSchedules),
-  //   [selectedDate, monthSchedules]
-  // );
 
   const handleMonthChange = (month: number) => {
     setCurrentMonth(month);
@@ -48,40 +76,23 @@ export const Agenda = () => {
 
   const handleSelectDate = (date: Date) => {
     setSelectedDate(date);
+    navigate(`/agenda/${toDateParam(date)}`);
   };
 
-  // const handlePrevDay = () => {
-  //   const previous = new Date(selectedDate);
-  //   previous.setDate(selectedDate.getDate() - 1);
-  //   setSelectedDate(previous);
-  //   setCurrentMonth(previous.getMonth());
-  //   setCurrentYear(previous.getFullYear());
-  // };
-
-  // const handleNextDay = () => {
-  //   const next = new Date(selectedDate);
-  //   next.setDate(selectedDate.getDate() + 1);
-  //   setSelectedDate(next);
-  //   setCurrentMonth(next.getMonth());
-  //   setCurrentYear(next.getFullYear());
-  // };
-
-  // const monthName = getMonthName(currentMonth);
-
   return (
-    <div className="">
-      <div className="max-w-6xl mx-auto px-4">
+    <div>
+      <div className="mx-auto max-w-6xl px-4">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-3xl text-left font-semibold text-[#502815]">Agenda</h2>
+            <h2 className="text-left text-3xl font-semibold text-[#502815]">Agenda</h2>
             <p className="mt-2 text-left text-[18px] text-[#502815]">
-              Selecione um dia para ver os agendamentos.
+              Clique em um dia para ver os horarios de meia em meia hora.
             </p>
           </div>
-         
+          {loading ? <p className="text-sm text-[#6A3710]">Carregando...</p> : null}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+        <div className="max-w-3xl">
           <AgendaCalendar
             selectedDate={selectedDate}
             month={currentMonth}
@@ -91,13 +102,6 @@ export const Agenda = () => {
             onMonthChange={handleMonthChange}
             onYearChange={handleYearChange}
           />
-
-          {/* <DayAgenda
-            selectedDate={selectedDate}
-            patients={selectedDaySchedule}
-            onPrevDay={handlePrevDay}
-            onNextDay={handleNextDay}
-          /> */}
         </div>
       </div>
     </div>

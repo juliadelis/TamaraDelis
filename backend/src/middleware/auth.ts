@@ -8,7 +8,9 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     const { data, error } = await supabase.auth.getUser(token);
-    if (error || !data.user) return res.status(401).json({ error: 'Invalid token' });
+    if (error || !data.user) {
+      return res.status(401).json({ error: error?.message || 'Invalid token' });
+    }
 
     // attach user to request
     (req as any).user = data.user;

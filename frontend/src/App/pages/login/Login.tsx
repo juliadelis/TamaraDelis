@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { login } from '../../../shared/services/auth';
+import { getGoogleLoginUrl, login, saveAuthSession } from '../../../shared/services/auth';
 import "./Login.scss";
 
 export const Login = () => {
@@ -12,6 +12,34 @@ export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const expiresIn = params.get('expires_in');
+    const user = params.get('user');
+    const next = params.get('next') || '/';
+    const oauthError = params.get('error');
+
+    if (oauthError) {
+      setError('Nao foi possivel concluir o login com Google.');
+      return;
+    }
+
+    if (accessToken && refreshToken && expiresIn && user) {
+      saveAuthSession(
+        {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_in: Number(expiresIn),
+        },
+        JSON.parse(user)
+      );
+      navigate(next, { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async () => {
     setError(null);
@@ -28,6 +56,17 @@ export const Login = () => {
       setError(err?.message || 'Erro ao entrar');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      window.location.href = await getGoogleLoginUrl('/');
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao entrar com Google');
+      setGoogleLoading(false);
     }
   };
 
@@ -95,6 +134,14 @@ export const Login = () => {
                 className="w-full p-3 rounded-lg shadow-none border-none text-[#6A3710]"
                 style={{ backgroundColor: "#EDD8C1", borderColor: "#EDD8C1", color: "#6A3710" }}
               />
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={googleLoading}
+                className="w-full rounded-lg border border-[#EDD8C1] bg-transparent p-3 font-semibold text-[#EDD8C1] transition hover:bg-[#502815] disabled:opacity-60"
+              >
+                {googleLoading ? 'Abrindo Google...' : 'Entrar com Google'}
+              </button>
             </div>
           </div>
         </div>

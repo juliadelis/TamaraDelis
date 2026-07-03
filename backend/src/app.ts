@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import authRouter from './routes/auth';
 import patientsRouter from './routes/patients';
+import sessionsRouter from './routes/sessions';
 
 const app = express();
 
@@ -14,5 +15,6 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/auth', authRouter);
 app.use('/api/patients', patientsRouter);
+app.use('/api/sessions', sessionsRouter);
 
 export default app;
