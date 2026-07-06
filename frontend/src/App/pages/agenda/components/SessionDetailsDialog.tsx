@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
-import { FiArrowLeft, FiCheck, FiRefreshCw, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiRefreshCw, FiVideo, FiX } from 'react-icons/fi';
 import type { PatientSession, PatientSessionPayload, SessionStatus } from '../../../../shared/models/session.model';
 import { saveSession } from '../../../../shared/services/session';
 
 type SessionDetailsDialogProps = {
   visible: boolean;
   session: PatientSession | null;
+  initialStatus?: SessionStatus | null;
   deleting: boolean;
   onHide: () => void;
   onEdit: () => void;
@@ -112,6 +113,7 @@ function buildPayload(
 export function SessionDetailsDialog({
   visible,
   session,
+  initialStatus = null,
   deleting,
   onHide,
   onEdit,
@@ -144,7 +146,7 @@ export function SessionDetailsDialog({
       return;
     }
 
-    setStatus(session.status);
+    setStatus(initialStatus || session.status);
     setNotes(session.notes || '');
     setTags(session.tags || []);
     setMoodScale(session.moodScale || 4);
@@ -154,7 +156,7 @@ export function SessionDetailsDialog({
     setRescheduleStart(toLocalInputValue(session.startsAt));
     setRescheduleEnd(toLocalInputValue(session.endsAt));
     setError(null);
-  }, [session, visible]);
+  }, [initialStatus, session, visible]);
 
   const persist = async (updates: Partial<PatientSessionPayload>) => {
     if (!session) return;
@@ -164,6 +166,7 @@ export function SessionDetailsDialog({
     try {
       const saved = await saveSession(buildPayload(session, updates), session.id);
       onSaved(saved);
+      onHide();
     } catch (err: any) {
       setError(err?.message || 'Erro ao salvar sessao.');
     } finally {
@@ -267,6 +270,18 @@ export function SessionDetailsDialog({
             <span className={`font-semibold ${currentMeta.text}`}>{currentMeta.label}</span>
           </div>
 
+          {session.googleMeetLink ? (
+            <a
+              href={session.googleMeetLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mb-7 inline-flex w-fit items-center justify-center gap-2 rounded-md border border-[#6A3710] px-4 py-2 text-sm font-bold text-[#3A1C0B]"
+            >
+              <FiVideo />
+              Entrar no Google Meet
+            </a>
+          ) : null}
+
           <div className="mb-6">
             <h3 className="mb-4 text-sm font-bold text-[#111111]">Acoes rapidas</h3>
             {status === 'completed' ? (
@@ -342,15 +357,6 @@ export function SessionDetailsDialog({
             className="mb-1 min-h-20 rounded border border-[#6A3710] px-3 py-2 text-sm"
             placeholder="Paciente costuma faltar"
           />
-
-          <button
-            type="button"
-            onClick={onEdit}
-            disabled={saving || deleting}
-            className="mb-5 w-fit text-sm text-[#3A1C0B] underline"
-          >
-            Editar
-          </button>
 
           {showCompletedFields ? (
             <>
@@ -453,6 +459,14 @@ export function SessionDetailsDialog({
           {error ? <p className="mb-3 text-sm text-[#B42318]">{error}</p> : null}
 
           <div className="mt-auto flex gap-3 pt-6">
+            <button
+              type="button"
+              onClick={onEdit}
+              disabled={saving || deleting}
+              className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              Editar
+            </button>
             <button
               type="button"
               onClick={handleSave}

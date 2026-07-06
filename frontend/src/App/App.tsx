@@ -10,7 +10,7 @@ import "primeicons/primeicons.css";
 function App() {
   const router = useMemo(routerFactory, [1]);
   return (
-    <div className=" w-screen h-screen overflow-hidden">
+    <div className="min-h-dvh w-screen">
       <RouterProvider router={router} />
     </div>
   );

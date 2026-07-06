@@ -37,6 +37,7 @@ type SessionRow = {
   rescheduled_from_ends_at?: string | null;
   google_event_id: string | null;
   google_calendar_id: string | null;
+  google_meet_link?: string | null;
   google_sync_status?: string | null;
   google_last_synced_at?: string | null;
   created_at?: string;
@@ -101,7 +102,7 @@ async function getConnection(userId: string) {
 export async function getGoogleCalendarConnectionStatus(userId: string) {
   const { data, error } = await supabase
     .from('google_calendar_connections')
-    .select('google_email, calendar_id, sync_enabled, expires_at, refresh_token_encrypted')
+    .select('google_email, calendar_id, sync_enabled, expires_at, access_token_encrypted, refresh_token_encrypted')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -115,8 +116,14 @@ export async function getGoogleCalendarConnectionStatus(userId: string) {
     };
   }
 
+  const accessTokenStillValid = data.expires_at
+    ? new Date(data.expires_at).getTime() > Date.now() + 60_000
+    : false;
+
   return {
-    connected: Boolean(data.sync_enabled && data.refresh_token_encrypted),
+    connected: Boolean(
+      data.sync_enabled && (data.refresh_token_encrypted || (data.access_token_encrypted && accessTokenStillValid))
+    ),
     syncEnabled: Boolean(data.sync_enabled),
     googleEmail: data.google_email || '',
     calendarId: data.calendar_id || 'primary',
@@ -201,14 +208,57 @@ async function googleRequest(
   return body;
 }
 
+function getGoogleMeetLink(event: any) {
+  const videoEntryPoint = event?.conferenceData?.entryPoints?.find(
+    (entryPoint: any) => entryPoint.entryPointType === 'video' && entryPoint.uri
+  );
+
+  return event?.hangoutLink || videoEntryPoint?.uri || null;
+}
+
+function isMissingGoogleMeetLinkColumn(error: any) {
+  return (
+    error?.code === 'PGRST204' ||
+    String(error?.message || '').includes("'google_meet_link' column") ||
+    String(error?.message || '').includes('google_meet_link')
+  );
+}
+
+async function updateGoogleSyncMetadata(sessionId: string, values: Record<string, unknown>) {
+  const { data, error } = await supabase
+    .from('patient_sessions')
+    .update(values)
+    .eq('id', sessionId)
+    .select('*, patients(full_name, email)')
+    .single();
+
+  if (!error) {
+    return data as SessionRow;
+  }
+
+  if (!('google_meet_link' in values) || !isMissingGoogleMeetLinkColumn(error)) {
+    throw new Error(error.message);
+  }
+
+  const { google_meet_link, ...fallbackValues } = values;
+  const { data: fallbackData, error: fallbackError } = await supabase
+    .from('patient_sessions')
+    .update(fallbackValues)
+    .eq('id', sessionId)
+    .select('*, patients(full_name, email)')
+    .single();
+
+  if (fallbackError) {
+    throw new Error(fallbackError.message);
+  }
+
+  return fallbackData as SessionRow;
+}
+
 export async function upsertGoogleCalendarEvent(userId: string, session: SessionRow) {
   const connection = await getConnection(userId);
   if (!connection) {
     throw new Error('Google Agenda nao conectado. Entre com Google novamente e autorize o acesso ao calendario.');
-  }
-
-  if (!connection.refresh_token_encrypted) {
-    throw new Error('Google Agenda sem refresh token. Entre com Google novamente usando a opcao de consentimento.');
   }
 
   const calendarId = session.google_calendar_id || connection.calendar_id || 'primary';
@@ -235,35 +285,37 @@ export async function upsertGoogleCalendarEvent(userId: string, session: Session
         source: 'tamara-delis',
       },
     },
+    conferenceData: {
+      createRequest: {
+        requestId: `tamara-delis-${session.id}`,
+        conferenceSolutionKey: {
+          type: 'hangoutsMeet',
+        },
+      },
+    },
   };
 
-  const path = session.google_event_id
+  const eventPath = session.google_event_id
     ? `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(session.google_event_id)}`
     : `/calendars/${encodeURIComponent(calendarId)}/events`;
+  const path = `${eventPath}?${new URLSearchParams({
+    conferenceDataVersion: '1',
+    sendUpdates: 'all',
+  }).toString()}`;
 
   const event = await googleRequest(connection, path, {
     method: session.google_event_id ? 'PATCH' : 'POST',
     body: JSON.stringify(eventBody),
   });
 
-  const { data, error } = await supabase
-    .from('patient_sessions')
-    .update({
-      google_event_id: event.id,
-      google_calendar_id: calendarId,
-      google_sync_status: 'synced',
-      google_last_synced_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', session.id)
-    .select('*, patients(full_name, email)')
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data as SessionRow;
+  return updateGoogleSyncMetadata(session.id, {
+    google_event_id: event.id,
+    google_calendar_id: calendarId,
+    google_meet_link: getGoogleMeetLink(event),
+    google_sync_status: 'synced',
+    google_last_synced_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
 }
 
 export async function deleteGoogleCalendarEvent(userId: string, session: SessionRow) {
@@ -274,7 +326,11 @@ export async function deleteGoogleCalendarEvent(userId: string, session: Session
     return;
   }
 
-  await googleRequest(connection, `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(session.google_event_id)}`, {
+  const path = `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(
+    session.google_event_id
+  )}?${new URLSearchParams({ sendUpdates: 'all' }).toString()}`;
+
+  await googleRequest(connection, path, {
     method: 'DELETE',
   });
 }

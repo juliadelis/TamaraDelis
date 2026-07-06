@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import { DayAgenda } from './components/DayAgenda';
 import { SessionDetailsDialog } from './components/SessionDetailsDialog';
 import type { PatientSession } from '../../../shared/models/session.model';
@@ -150,6 +151,15 @@ export function AgendaDia() {
 
   return (
     <div className="mx-auto max-w-md">
+      <div className="flex"> <button
+        type="button"
+        onClick={() => navigate('/agenda')}
+        className="mb-4 inline-flex items-center gap-2 rounded-md border border-[#6A3710] bg-white px-3 py-2 text-sm font-semibold text-[#3A1C0B] shadow-sm transition hover:bg-[#F5EEE8]"
+      >
+        <FiArrowLeft />
+        Voltar para agenda
+      </button></div>
+    
       <div className="relative">
         {loading ? (
           <p className="absolute right-4 top-14 z-10 text-xs font-semibold text-[#6A3710]">

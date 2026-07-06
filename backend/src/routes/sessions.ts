@@ -34,6 +34,7 @@ type SessionRow = {
   rescheduled_from_ends_at: string | null;
   google_event_id: string | null;
   google_calendar_id: string | null;
+  google_meet_link: string | null;
   google_sync_status: string | null;
   google_last_synced_at: string | null;
   created_at: string;
@@ -49,6 +50,10 @@ function text(value: unknown) {
 }
 
 function numberValue(value: unknown) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -96,6 +101,7 @@ function rowToSession(row: SessionRow) {
     rescheduledFromEndsAt: row.rescheduled_from_ends_at || '',
     googleEventId: row.google_event_id || '',
     googleCalendarId: row.google_calendar_id || '',
+    googleMeetLink: row.google_meet_link || '',
     googleSyncStatus: row.google_sync_status || '',
     googleLastSyncedAt: row.google_last_synced_at || '',
     createdAt: row.created_at,
@@ -128,6 +134,17 @@ function requestToRow(body: Record<string, unknown>, userId: string) {
     rescheduled_from_ends_at: text(body.rescheduledFromEndsAt) || null,
     updated_at: new Date().toISOString(),
   };
+}
+
+async function shouldSyncGoogle(userId: string, requestedSync: unknown) {
+  const explicitlyRequested = requestedSync === true || requestedSync === 'true';
+  const googleStatus = await getGoogleCalendarConnectionStatus(userId);
+
+  if (explicitlyRequested && !googleStatus.connected) {
+    throw new Error('Google Agenda nao conectado. Entre com Google novamente e autorize o acesso ao calendario.');
+  }
+
+  return googleStatus.connected;
 }
 
 const router = Router();
@@ -195,13 +212,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Paciente, inicio e fim da sessao sao obrigatorios.' });
   }
 
-  if (req.body.syncGoogle) {
-    const googleStatus = await getGoogleCalendarConnectionStatus(userId);
-    if (!googleStatus.connected) {
-      return res.status(400).json({
-        error: 'Google Agenda nao conectado. Entre com Google novamente e autorize o acesso ao calendario.',
-      });
-    }
+  let syncGoogle = false;
+  try {
+    syncGoogle = await shouldSyncGoogle(userId, req.body.syncGoogle);
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message });
   }
 
   const { data, error } = await supabase
@@ -216,7 +231,7 @@ router.post('/', async (req, res) => {
 
   let row = data as SessionRow;
 
-  if (req.body.syncGoogle) {
+  if (syncGoogle) {
     row = (await upsertGoogleCalendarEvent(userId, row)) as SessionRow;
   }
 
@@ -231,13 +246,11 @@ router.put('/:id', async (req, res) => {
     return res.status(400).json({ error: 'Paciente, inicio e fim da sessao sao obrigatorios.' });
   }
 
-  if (req.body.syncGoogle) {
-    const googleStatus = await getGoogleCalendarConnectionStatus(userId);
-    if (!googleStatus.connected) {
-      return res.status(400).json({
-        error: 'Google Agenda nao conectado. Entre com Google novamente e autorize o acesso ao calendario.',
-      });
-    }
+  let syncGoogle = false;
+  try {
+    syncGoogle = await shouldSyncGoogle(userId, req.body.syncGoogle);
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message });
   }
 
   const { data, error } = await supabase
@@ -254,7 +267,7 @@ router.put('/:id', async (req, res) => {
 
   let row = data as SessionRow;
 
-  if (req.body.syncGoogle) {
+  if (syncGoogle) {
     row = (await upsertGoogleCalendarEvent(userId, row)) as SessionRow;
   }
 
@@ -284,8 +297,12 @@ router.delete('/:id', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  if (req.query.syncGoogle === 'true') {
-    await deleteGoogleCalendarEvent(userId, data as SessionRow);
+  if (req.query.syncGoogle === 'true' || data.google_event_id) {
+    try {
+      await deleteGoogleCalendarEvent(userId, data as SessionRow);
+    } catch (googleError) {
+      console.error('Falha ao excluir evento no Google Calendar:', googleError);
+    }
   }
 
   return res.status(204).send();

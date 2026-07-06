@@ -27,6 +27,7 @@ export interface PatientSession {
   rescheduledFromEndsAt: string;
   googleEventId: string;
   googleCalendarId: string;
+  googleMeetLink: string;
   googleSyncStatus: string;
   googleLastSyncedAt: string;
   createdAt: string;

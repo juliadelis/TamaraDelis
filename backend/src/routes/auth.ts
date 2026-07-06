@@ -172,6 +172,11 @@ router.get('/google/callback', async (req, res) => {
   }
 
   const expiresAt = new Date(Date.now() + Number(googleTokens.expires_in || 3600) * 1000).toISOString();
+  const { data: existingConnection } = await supabase
+    .from('google_calendar_connections')
+    .select('refresh_token_encrypted')
+    .eq('user_id', data.user.id)
+    .maybeSingle();
 
   await supabase.from('google_calendar_connections').upsert(
     {
@@ -181,7 +186,7 @@ router.get('/google/callback', async (req, res) => {
       access_token_encrypted: encryptToken(googleTokens.access_token),
       refresh_token_encrypted: googleTokens.refresh_token
         ? encryptToken(googleTokens.refresh_token)
-        : undefined,
+        : existingConnection?.refresh_token_encrypted,
       expires_at: expiresAt,
       sync_enabled: true,
       sync_direction: 'app_to_google',

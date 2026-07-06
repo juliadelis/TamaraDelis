@@ -11,6 +11,9 @@ STATUS_ACCENT_COLOR_BORDER,
 
 interface PatientCardProps {
   patient: Patient;
+  onViewDetails?: (patientId: string) => void;
+  onMarkPresent?: (patientId: string) => void;
+  onMarkMissed?: (patientId: string) => void;
 }
 
 const statusActionClasses = {
@@ -20,7 +23,12 @@ const statusActionClasses = {
   absent: 'border-[#E10415] bg-[#FEE4E6] text-[#E10415]',
 };
 
-export const PatientCard = ({ patient }: PatientCardProps) => {
+export const PatientCard = ({
+  patient,
+  onViewDetails,
+  onMarkPresent,
+  onMarkMissed,
+}: PatientCardProps) => {
   const showBothButtons = patient.status === 'pending' || patient.status === 'rescheduled';
   const onlyPresent = patient.status === 'present';
   const onlyAbsent = patient.status === 'absent';
@@ -45,7 +53,11 @@ export const PatientCard = ({ patient }: PatientCardProps) => {
             {STATUS_LABEL[patient.status]}
           </p>
           {patient.details && (
-            <button className={`mt-1 text-sm underline color-[#1e1e1e]`}>
+            <button
+              type="button"
+              onClick={() => onViewDetails?.(patient.id)}
+              className="mt-1 text-sm underline text-[#1e1e1e]"
+            >
               {patient.details}
             </button>
           )}
@@ -56,6 +68,7 @@ export const PatientCard = ({ patient }: PatientCardProps) => {
             <>
               <button
                 type="button"
+                onClick={() => onMarkPresent?.(patient.id)}
                 className={`flex h-8 w-8 items-center justify-center rounded-full border ${statusActionClasses[patient.status]} transition-opacity`}
                 aria-label="Marcar como presente"
               >
@@ -63,6 +76,7 @@ export const PatientCard = ({ patient }: PatientCardProps) => {
               </button>
               <button
                 type="button"
+                onClick={() => onMarkMissed?.(patient.id)}
                 className={`flex h-8 w-8 items-center justify-center rounded-full border ${statusActionClasses[patient.status]} transition-opacity`}
                 aria-label="Marcar como faltou"
               >

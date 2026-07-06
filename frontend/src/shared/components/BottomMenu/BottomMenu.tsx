@@ -28,7 +28,19 @@ export function BottomMenu() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+    <nav
+      className="border-t border-gray-200 bg-white shadow-lg"
+      aria-label="Menu principal"
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: "1126px",
+        zIndex: 9999,
+      }}
+    >
       <div className="flex items-center justify-around max-w-md mx-auto">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -50,6 +62,6 @@ export function BottomMenu() {
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

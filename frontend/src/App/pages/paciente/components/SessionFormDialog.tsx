@@ -109,6 +109,9 @@ export function SessionFormDialog({
         const status = await getGoogleCalendarStatus();
         setGoogleConnected(status.connected);
         setGoogleEmail(status.googleEmail);
+        if (status.connected && !session?.googleEventId) {
+          setSyncGoogle(true);
+        }
       } catch {
         setGoogleConnected(false);
       } finally {
@@ -117,7 +120,7 @@ export function SessionFormDialog({
     };
 
     checkGoogle();
-  }, []);
+  }, [session]);
 
   const handleConnectGoogle = async () => {
     setConnectingGoogle(true);
