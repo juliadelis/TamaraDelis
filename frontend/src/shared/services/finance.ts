@@ -1,4 +1,4 @@
-import type { PatientFinancialSummary } from '../models/finance.model';
+import type { MonthlyFinancialSummary, PatientFinancialSummary } from '../models/finance.model';
 import API_URL from './api';
 import { getAuthToken, refreshAuthSession } from './auth';
 
@@ -42,4 +42,19 @@ export async function getPatientFinancialSummary(patientId: string) {
   }
 
   return response.json() as Promise<PatientFinancialSummary>;
+}
+
+export async function getMonthlyFinancialSummary(year: number, month: number) {
+  const params = new URLSearchParams({
+    year: String(year),
+    month: String(month),
+  });
+  const response = await fetchWithAuthRetry(`${API_URL}/api/finance/monthly?${params.toString()}`);
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao buscar financeiro mensal.');
+  }
+
+  return response.json() as Promise<MonthlyFinancialSummary>;
 }

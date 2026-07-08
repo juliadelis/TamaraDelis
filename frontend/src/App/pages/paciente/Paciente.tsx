@@ -120,7 +120,7 @@ export const Paciente = () => {
       <div className="mx-auto   bg-white  py-5 text-left sm:max-w-2xl">
         <div className="mb-5 flex items-start justify-between">
           <div className="w-full">
-            <h1 className="text-sm font-bold text-[#111111]">Buscar paciente</h1>
+            <h1 className="text-left text-3xl font-semibold text-[#502815]">Buscar paciente</h1>
             <label className="relative w-full mt-2 block">
               <IoSearch
                 aria-hidden="true"

@@ -27,3 +27,18 @@ export interface PatientFinancialSummary {
   priceHistory: PatientSessionPriceHistory[];
   sessions: PatientFinancialSession[];
 }
+
+export interface MonthlyPatientFinancialSummary {
+  patientId: string;
+  patientName: string;
+  received: number;
+  sessions: number;
+}
+
+export interface MonthlyFinancialSummary {
+  year: number;
+  month: number;
+  patients: MonthlyPatientFinancialSummary[];
+  totalReceived: number;
+  totalSessions: number;
+}

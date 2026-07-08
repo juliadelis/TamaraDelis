@@ -13,6 +13,7 @@ type PriceHistoryRow = {
 
 type SessionFinanceRow = {
   id: string;
+  patient_id?: string;
   starts_at: string;
   title: string | null;
   status: string | null;
@@ -20,11 +21,81 @@ type SessionFinanceRow = {
   payment_status: string | null;
   paid_at: string | null;
   paid_amount: number | null;
+  patients?: {
+    full_name: string | null;
+  } | null;
+};
+
+type MonthlySessionFinanceRow = {
+  id: string;
+  patient_id: string;
+  starts_at: string;
+  status: string | null;
+  session_price: number | null;
+  paid_amount: number | null;
+  patients?: {
+    full_name: string | null;
+  } | null;
 };
 
 const router = Router();
 
 router.use(requireAuth);
+
+router.get('/monthly', async (req, res) => {
+  const userId = (req as any).user.id as string;
+  const year = Number(req.query.year);
+  const month = Number(req.query.month);
+
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    return res.status(400).json({ error: 'Mes e ano sao obrigatorios.' });
+  }
+
+  const from = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0)).toISOString();
+  const to = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0)).toISOString();
+
+  const { data, error } = await supabase
+    .from('patient_sessions')
+    .select('id, patient_id, starts_at, status, session_price, paid_amount, patients(full_name)')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .is('deleted_at', null)
+    .gte('starts_at', from)
+    .lt('starts_at', to)
+    .order('starts_at', { ascending: true });
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  const patients = new Map<string, { patientId: string; patientName: string; received: number; sessions: number }>();
+
+  ((data || []) as unknown as MonthlySessionFinanceRow[]).forEach((session) => {
+    const patientId = session.patient_id || 'sem-paciente';
+    const current = patients.get(patientId) || {
+      patientId,
+      patientName: session.patients?.full_name || 'Paciente sem nome',
+      received: 0,
+      sessions: 0,
+    };
+
+    current.received += Number(session.paid_amount ?? session.session_price ?? 0);
+    current.sessions += 1;
+    patients.set(patientId, current);
+  });
+
+  const patientTotals = Array.from(patients.values()).sort((a, b) =>
+    a.patientName.localeCompare(b.patientName, 'pt-BR')
+  );
+
+  return res.json({
+    year,
+    month,
+    patients: patientTotals,
+    totalReceived: patientTotals.reduce((total, patient) => total + patient.received, 0),
+    totalSessions: patientTotals.reduce((total, patient) => total + patient.sessions, 0),
+  });
+});
 
 router.get('/patients/:patientId', async (req, res) => {
   const userId = (req as any).user.id as string;
