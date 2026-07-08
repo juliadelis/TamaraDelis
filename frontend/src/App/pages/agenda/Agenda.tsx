@@ -88,7 +88,7 @@ export const Agenda = () => {
 
   return (
     <div>
-      <div className="mx-auto max-w-6xl px-4">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-left text-3xl font-semibold text-[#502815]">Agenda</h2>

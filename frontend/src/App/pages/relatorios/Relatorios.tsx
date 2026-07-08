@@ -181,8 +181,8 @@ export function Relatorios() {
   const anxietyPoints = useMemo(() => buildPoints(sessions, 'anxietyScale'), [sessions]);
 
   return (
-    <div className="mx-auto max-w-md text-left">
-      <section className="px-4 pb-8 pt-5">
+    <div className="mx-auto max-w-full text-left">
+      <section className="pb-8">
         <h1 className="text-3xl font-semibold text-[#502815]">Relatórios</h1>
 
         <div className="mt-5 flex flex-wrap gap-3">

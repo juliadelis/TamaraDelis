@@ -168,7 +168,7 @@ export function AgendaDia() {
   };
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-full">
       <div className="flex"> <button
         type="button"
         onClick={() => navigate('/agenda')}

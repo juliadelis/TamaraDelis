@@ -71,8 +71,8 @@ export const Login = () => {
   };
 
   return (
-    <div className="h-screen bg-[#6A3710] grid grid-cols-12 overflow-hidden">
-      <div className="col-span-7 hidden md:block h-screen min-w-0 overflow-hidden">
+    <div className="fixed inset-0 grid h-dvh w-full max-w-full grid-cols-12 overflow-hidden bg-[#6A3710]">
+      <div className="col-span-7 hidden h-dvh min-w-0 overflow-hidden md:block">
         <div className="h-full w-full overflow-hidden">
           <img
             src="/img/login-2.jpg"
@@ -81,12 +81,12 @@ export const Login = () => {
           />
         </div>
       </div>
-      <div className="col-span-12 md:col-span-5 flex flex-col">
-        <div className="p-5 flex flex-col gap-8 h-full items-center justify-center">
+      <div className="col-span-12 flex min-w-0 flex-col md:col-span-5">
+        <div className="flex h-full min-w-0 flex-col items-center justify-center gap-8 p-5">
           <div className="flex items-center justify-center">
             <img src="/logo.svg" alt="logo" />
           </div>
-          <div className="flex flex-col gap-8 px-9 w-full">
+          <div className="flex w-full max-w-sm flex-col gap-8 px-4 sm:px-9">
             <div className="flex flex-col gap-8 items-center justify-center w-full">
               <div className="flex flex-col gap-3 w-full text-left">
                 <label htmlFor="email" className="text-white font-light">

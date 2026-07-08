@@ -10,7 +10,7 @@ import "primeicons/primeicons.css";
 function App() {
   const router = useMemo(routerFactory, [1]);
   return (
-    <div className="min-h-dvh w-screen">
+    <div className="min-h-dvh lg:w-full">
       <RouterProvider router={router} />
     </div>
   );

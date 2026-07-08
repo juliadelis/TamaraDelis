@@ -60,8 +60,8 @@ export function Financeiro() {
   const totalSessions = summary?.totalSessions || 0;
 
   return (
-    <div className="mx-auto max-w-md text-left">
-      <section className="px-4 pb-8 pt-5">
+    <div className="mx-auto max-w-full text-left">
+      <section className="pb-8 ">
         <h2 className="text-left text-3xl font-semibold text-[#502815]">Financeiro</h2>
 
         <div className="mt-5 flex flex-wrap gap-3">

@@ -117,7 +117,7 @@ export const Paciente = () => {
 
   return (
     <div className="py-2">
-      <div className="mx-auto   bg-white  py-5 text-left sm:max-w-2xl">
+      <div className="mx-auto max-w-full  bg-white  pb-5 text-left ">
         <div className="mb-5 flex items-start justify-between">
           <div className="w-full">
             <h1 className="text-left text-3xl font-semibold text-[#502815]">Buscar paciente</h1>

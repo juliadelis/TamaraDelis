@@ -82,7 +82,7 @@ export const DailySchedule = ({
         </div>
       )}
 
-      {patients.length > 0 && !loading && !error ? (
+      {!loading && !error ? (
         <button
           type="button"
           onClick={() => navigate(`/agenda/${toDateParam(selectedDate)}`)}
