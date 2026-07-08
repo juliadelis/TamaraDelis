@@ -20,7 +20,7 @@ export const Login = () => {
     const refreshToken = params.get('refresh_token');
     const expiresIn = params.get('expires_in');
     const user = params.get('user');
-    const next = params.get('next') || '/';
+    const next = params.get('next') || '/home';
     const oauthError = params.get('error');
 
     if (oauthError) {
@@ -51,7 +51,7 @@ export const Login = () => {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/home');
     } catch (err: any) {
       setError(err?.message || 'Erro ao entrar');
     } finally {
@@ -63,7 +63,7 @@ export const Login = () => {
     setError(null);
     setGoogleLoading(true);
     try {
-      window.location.href = await getGoogleLoginUrl('/');
+      window.location.href = await getGoogleLoginUrl('/home');
     } catch (err: any) {
       setError(err?.message || 'Erro ao entrar com Google');
       setGoogleLoading(false);

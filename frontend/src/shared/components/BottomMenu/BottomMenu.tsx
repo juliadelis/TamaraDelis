@@ -12,7 +12,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { label: "Home", icon: <AiOutlineHome size={24} />, path: "/" },
+  { label: "Home", icon: <AiOutlineHome size={24} />, path: "/home" },
   { label: "Agenda", icon: <IoCalendarClearOutline size={22} />, path: "/agenda" },
   { label: "Financeiro", icon: <PiMoneyWavyLight size={25} />, path: "/financeiro" },
   { label: "Relatórios", icon: <MdOutlineAutoGraph size={24} />, path: "/relatorios" },

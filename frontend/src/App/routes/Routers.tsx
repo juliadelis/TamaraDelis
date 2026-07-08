@@ -10,6 +10,7 @@ import { NovoPaciente } from "../pages/paciente/NovoPaciente";
 import { EditarProntuario } from "../pages/paciente/EditarProntuario";
 import { Relatorios } from "../pages/relatorios/Relatorios";
 import { Login } from "../pages/login/Login";
+import { PublicHome } from "../pages/public/PublicHome";
 import { PrivacyPolicy, TermsOfService } from "../pages/public/LegalPages";
 import { getAuthToken } from "../../shared/services/auth";
 
@@ -17,12 +18,16 @@ export function routerFactory() {
   return createBrowserRouter([
     {
       path: "/",
+      element: <PublicHome />,
+    },
+    {
+      path: "/",
       element: <MainLayout />,
       children: [
         {
           element: <AuthGuard />,
           children: [
-            { path: "", element: <Home /> },
+            { path: "home", element: <Home /> },
             { path: "agenda", element: <Agenda /> },
             { path: "agenda/:date", element: <AgendaDia /> },
             { path: "financeiro", element: <Financeiro /> },
