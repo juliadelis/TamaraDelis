@@ -47,6 +47,7 @@ export function AgendaDia() {
   const [loading, setLoading] = useState(false);
   const [patientsLoading, setPatientsLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [defaultSessionStart, setDefaultSessionStart] = useState<Date | null>(null);
   const [selectedSession, setSelectedSession] = useState<PatientSession | null>(null);
   const [editingSession, setEditingSession] = useState<PatientSession | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -102,6 +103,7 @@ export function AgendaDia() {
   const handleSessionSaved = (session: PatientSession) => {
     setDialogVisible(false);
     setEditingSession(null);
+    setDefaultSessionStart(null);
     upsertSessionInDay(session);
   };
 
@@ -130,7 +132,23 @@ export function AgendaDia() {
   const handleEditSession = () => {
     if (!selectedSession) return;
     setEditingSession(selectedSession);
+    setDefaultSessionStart(null);
     setSelectedSession(null);
+    setDialogVisible(true);
+  };
+
+  const handleRegisterSession = (slot?: string) => {
+    setEditingSession(null);
+
+    if (slot) {
+      const [hour, minutes] = slot.split(':').map(Number);
+      const start = new Date(selectedDate);
+      start.setHours(hour, minutes, 0, 0);
+      setDefaultSessionStart(start);
+    } else {
+      setDefaultSessionStart(null);
+    }
+
     setDialogVisible(true);
   };
 
@@ -171,10 +189,7 @@ export function AgendaDia() {
           sessions={sessions}
           onPrevDay={handlePrevDay}
           onNextDay={handleNextDay}
-          onRegisterSession={() => {
-            setEditingSession(null);
-            setDialogVisible(true);
-          }}
+          onRegisterSession={handleRegisterSession}
           onViewSession={setSelectedSession}
         />
         {dialogVisible ? (
@@ -182,9 +197,14 @@ export function AgendaDia() {
             visible={dialogVisible}
             patients={patients}
             defaultDate={selectedDate}
+            defaultStartAt={defaultSessionStart || undefined}
+            defaultDurationMinutes={50}
             session={editingSession}
             blankInitialTitle={!editingSession}
-            onHide={() => setDialogVisible(false)}
+            onHide={() => {
+              setDialogVisible(false);
+              setDefaultSessionStart(null);
+            }}
             onSaved={handleSessionSaved}
           />
         ) : null}

@@ -9,7 +9,7 @@ interface DayAgendaProps {
   sessions: PatientSession[];
   onPrevDay: () => void;
   onNextDay: () => void;
-  onRegisterSession: () => void;
+  onRegisterSession: (slot?: string) => void;
   onViewSession: (session: PatientSession) => void;
 }
 
@@ -135,7 +135,12 @@ export const DayAgenda = ({
 
               <div className="min-w-0 pl-2">
                 {!occupiedSlots.has(index) ? (
-                  <div className="h-6 rounded-md border border-[#B95B24] bg-white" />
+                  <button
+                    type="button"
+                    onClick={() => onRegisterSession(slot)}
+                    className="h-6 w-full rounded-md border border-[#B95B24] bg-white transition hover:bg-[#FFF8ED]"
+                    aria-label={`Adicionar sessao as ${slot}`}
+                  />
                 ) : (
                   <div className="h-6" />
                 )}
@@ -145,7 +150,7 @@ export const DayAgenda = ({
         </div>
 
         <div
-          className="absolute left-[62px] right-0 top-0"
+          className="pointer-events-none absolute left-[62px] right-0 top-0"
           style={{ height: TIME_SLOTS.length * SLOT_HEIGHT }}
         >
           {positionedSessions.map(({ session, startIndex, span }) => {
@@ -154,10 +159,13 @@ export const DayAgenda = ({
             const height = span * SLOT_HEIGHT - 8;
 
             return (
-              <article
+              <button
                 key={session.id}
-                className={`absolute left-2 right-0 overflow-hidden rounded-md px-6 py-2 ${style.card}`}
+                type="button"
+                onClick={() => onViewSession(session)}
+                className={`pointer-events-auto absolute left-2 right-0 overflow-hidden rounded-md px-6 py-2 text-left transition hover:brightness-[0.98] focus:outline-none   ${style.card}`}
                 style={{ top, height }}
+                aria-label={`Ver detalhes de ${session.patientName || session.title || 'sessao'}`}
               >
                 <div className={`absolute bottom-2 left-2 top-2 w-[3px] rounded-full ${style.accent}`} />
                 <h2 className="truncate text-[17px] font-bold leading-tight text-[#111111]">
@@ -166,14 +174,10 @@ export const DayAgenda = ({
                 <p className={`text-sm font-bold leading-tight ${style.label}`}>
                   {SESSION_STATUS_LABEL[session.status]}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => onViewSession(session)}
-                  className="text-xs font-medium leading-tight text-[#3A1C0B] underline"
-                >
+                <span className="text-xs font-medium leading-tight text-[#3A1C0B] underline">
                   Ver detalhes
-                </button>
-              </article>
+                </span>
+              </button>
             );
           })}
         </div>
@@ -181,7 +185,7 @@ export const DayAgenda = ({
 
       <button
         type="button"
-        onClick={onRegisterSession}
+        onClick={() => onRegisterSession()}
         className="mt-7 inline-flex items-center gap-2 rounded-md bg-[#6A3710] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#502815]"
       >
         <GoPlusCircle size={16} />

@@ -10,6 +10,8 @@ type SessionFormDialogProps = {
   patient?: PatientRecord;
   patients?: PatientRecord[];
   defaultDate?: Date;
+  defaultStartAt?: Date;
+  defaultDurationMinutes?: number;
   blankInitialTitle?: boolean;
   session?: PatientSession | null;
   onHide: () => void;
@@ -42,30 +44,37 @@ export function SessionFormDialog({
   patient,
   patients = [],
   defaultDate,
+  defaultStartAt,
+  defaultDurationMinutes = 50,
   blankInitialTitle = false,
   session,
   onHide,
   onSaved,
 }: SessionFormDialogProps) {
   const defaultStart = useMemo(() => {
-    const date = defaultDate ? new Date(defaultDate) : new Date();
-    if (defaultDate) {
+    const date = defaultStartAt ? new Date(defaultStartAt) : defaultDate ? new Date(defaultDate) : new Date();
+    if (defaultStartAt) {
+      date.setSeconds(0, 0);
+    } else if (defaultDate) {
       date.setHours(8, 0, 0, 0);
     } else {
       date.setMinutes(0, 0, 0);
     }
     return toLocalInputValue(date.toISOString());
-  }, [defaultDate]);
+  }, [defaultDate, defaultStartAt]);
 
   const defaultEnd = useMemo(() => {
-    const date = defaultDate ? new Date(defaultDate) : new Date();
-    if (defaultDate) {
-      date.setHours(9, 0, 0, 0);
+    const date = defaultStartAt ? new Date(defaultStartAt) : defaultDate ? new Date(defaultDate) : new Date();
+    if (defaultStartAt) {
+      date.setSeconds(0, 0);
+    } else if (defaultDate) {
+      date.setHours(8, 0, 0, 0);
     } else {
-      date.setHours(date.getHours() + 1, 0, 0, 0);
+      date.setMinutes(0, 0, 0);
     }
+    date.setMinutes(date.getMinutes() + defaultDurationMinutes);
     return toLocalInputValue(date.toISOString());
-  }, [defaultDate]);
+  }, [defaultDate, defaultDurationMinutes, defaultStartAt]);
 
   const [selectedPatientId, setSelectedPatientId] = useState(
     session?.patientId || patient?.id || patients[0]?.id || ''
