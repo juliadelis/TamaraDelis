@@ -10,6 +10,7 @@ import { NovoPaciente } from "../pages/paciente/NovoPaciente";
 import { EditarProntuario } from "../pages/paciente/EditarProntuario";
 import { Relatorios } from "../pages/relatorios/Relatorios";
 import { Login } from "../pages/login/Login";
+import { PrivacyPolicy, TermsOfService } from "../pages/public/LegalPages";
 import { getAuthToken } from "../../shared/services/auth";
 
 export function routerFactory() {
@@ -37,6 +38,14 @@ export function routerFactory() {
     {
       path: "login",
       element: <Login />,
+    },
+    {
+      path: "politica-de-privacidade",
+      element: <PrivacyPolicy />,
+    },
+    {
+      path: "termos-de-servico",
+      element: <TermsOfService />,
     },
     {
       path: "*",

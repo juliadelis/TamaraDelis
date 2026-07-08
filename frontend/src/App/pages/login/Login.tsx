@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { getGoogleLoginUrl, login, saveAuthSession } from '../../../shared/services/auth';
@@ -142,6 +142,15 @@ export const Login = () => {
               >
                 {googleLoading ? 'Abrindo Google...' : 'Entrar com Google'}
               </button>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-[#EDD8C1]">
+                <Link to="/politica-de-privacidade" className="underline underline-offset-2">
+                  Política de Privacidade
+                </Link>
+                <span aria-hidden="true">•</span>
+                <Link to="/termos-de-servico" className="underline underline-offset-2">
+                  Termos de Serviço
+                </Link>
+              </div>
             </div>
           </div>
         </div>
