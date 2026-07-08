@@ -48,6 +48,7 @@ export interface PatientRecord {
   fullName: string;
   cpf?: string;
   birthDate: string;
+  firstConsultationDate: string;
   gender: string;
   maritalStatus: string;
   profession: string;
@@ -90,6 +91,7 @@ type PatientRow = {
   full_name: string;
   cpf: string | null;
   birth_date: string | null;
+  first_consultation_date: string | null;
   gender: string | null;
   marital_status: string | null;
   profession: string | null;
@@ -196,6 +198,7 @@ function rowToPatient(row: PatientRow): PatientRecord {
     fullName: row.full_name,
     cpf: row.cpf || '',
     birthDate: row.birth_date || '',
+    firstConsultationDate: row.first_consultation_date || '',
     gender: row.gender || '',
     maritalStatus: row.marital_status || '',
     profession: row.profession || '',
@@ -239,6 +242,7 @@ function requestToRow(body: Partial<PatientRecord>) {
     full_name: text(body.fullName),
     cpf: text(body.cpf) || null,
     birth_date: nullableDate(body.birthDate),
+    first_consultation_date: nullableDate(body.firstConsultationDate),
     gender: text(body.gender) || null,
     marital_status: text(body.maritalStatus) || null,
     profession: text(body.profession) || null,

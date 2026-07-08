@@ -5,6 +5,7 @@ export interface PatientRecord {
   fullName: string;
   cpf?: string;
   birthDate: string;
+  firstConsultationDate: string;
   gender: string;
   maritalStatus: string;
   profession: string;

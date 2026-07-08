@@ -108,6 +108,7 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
       items: [
         { label: 'CPF', value: record.cpf || emptyValue },
         { label: 'Data de nascimento', value: formatDate(record.birthDate) },
+        { label: 'Primeira consulta', value: formatDate(record.firstConsultationDate) },
         { label: 'Telefone', value: record.phone || emptyValue },
         { label: 'Email', value: record.email || emptyValue },
         { label: 'Gênero', value: record.gender || emptyValue },
@@ -207,6 +208,7 @@ function PatientHeader({
   const name = record?.fullName || 'Paciente';
   const initial = name.trim().charAt(0).toUpperCase() || 'P';
   const age = calculateAge(record?.birthDate ?? '');
+  const firstConsultation = formatDate(record?.firstConsultationDate ?? '');
 
   return (
     <div className="flex items-center justify-between gap-4">
@@ -218,7 +220,14 @@ function PatientHeader({
           <h1 className="truncate text-[22px] font-bold leading-tight text-[#111111]">
             {name}
           </h1>
-          {age ? <p className="mt-2 text-[15px] text-[#111111]">{age}</p> : null}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-[#111111]">
+            {age ? <span>{age}</span> : null}
+            {record?.firstConsultationDate ? (
+              <span>
+                <span className="font-semibold">Primeira consulta:</span> {firstConsultation}
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
       {record ? (

@@ -18,6 +18,7 @@ const initialFormState: Partial<PatientRecord> = {
   fullName: '',
   cpf: '',
   birthDate: '',
+  firstConsultationDate: '',
   gender: '',
   maritalStatus: '',
   profession: '',
@@ -209,6 +210,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
       fullName: formValues.fullName || '',
       cpf: formValues.cpf || '',
       birthDate: formValues.birthDate || '',
+      firstConsultationDate: formValues.firstConsultationDate || '',
       gender: formValues.gender || '',
       maritalStatus: formValues.maritalStatus || '',
       profession: formValues.profession || '',
@@ -404,6 +406,16 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
             <input
               name="birthDate"
               value={formValues.birthDate || ''}
+              onChange={handleChange}
+              type="date"
+              className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+            />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-[#6A3710]">Data da primeira consulta</span>
+            <input
+              name="firstConsultationDate"
+              value={formValues.firstConsultationDate || ''}
               onChange={handleChange}
               type="date"
               className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
