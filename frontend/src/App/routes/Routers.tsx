@@ -8,6 +8,7 @@ import { Paciente } from "../pages/paciente/Paciente";
 import { PacienteDetalhe } from "../pages/paciente/PacienteDetalhe";
 import { NovoPaciente } from "../pages/paciente/NovoPaciente";
 import { EditarProntuario } from "../pages/paciente/EditarProntuario";
+import { Relatorios } from "../pages/relatorios/Relatorios";
 import { Login } from "../pages/login/Login";
 import { getAuthToken } from "../../shared/services/auth";
 
@@ -24,6 +25,7 @@ export function routerFactory() {
             { path: "agenda", element: <Agenda /> },
             { path: "agenda/:date", element: <AgendaDia /> },
             { path: "financeiro", element: <Financeiro /> },
+            { path: "relatorios", element: <Relatorios /> },
             { path: "pacientes", element: <Paciente /> },
             { path: "pacientes/novo", element: <NovoPaciente /> },
             { path: "pacientes/:patientId", element: <PacienteDetalhe /> },
