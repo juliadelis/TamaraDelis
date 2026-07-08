@@ -57,7 +57,7 @@ export async function getSessions(filters: SessionFilters = {}) {
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.error || 'Falha ao buscar sessoes.');
+    throw new Error(body?.error || 'Falha ao buscar sessões.');
   }
 
   return response.json() as Promise<PatientSession[]>;
@@ -71,7 +71,7 @@ export async function saveSession(payload: PatientSessionPayload, id?: string) {
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.error || 'Falha ao salvar sessao.');
+    throw new Error(body?.error || 'Falha ao salvar sessão.');
   }
 
   return response.json() as Promise<PatientSession>;
@@ -84,6 +84,6 @@ export async function deleteSession(id: string, syncGoogle = false) {
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.error || 'Falha ao excluir sessao.');
+    throw new Error(body?.error || 'Falha ao excluir sessão.');
   }
 }

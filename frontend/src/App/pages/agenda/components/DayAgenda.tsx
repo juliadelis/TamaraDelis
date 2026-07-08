@@ -161,7 +161,7 @@ export const DayAgenda = ({
               >
                 <div className={`absolute bottom-2 left-2 top-2 w-[3px] rounded-full ${style.accent}`} />
                 <h2 className="truncate text-[17px] font-bold leading-tight text-[#111111]">
-                  {session.patientName || session.title || 'Sessao'}
+                  {session.patientName || session.title || 'Sessão'}
                 </h2>
                 <p className={`text-sm font-bold leading-tight ${style.label}`}>
                   {SESSION_STATUS_LABEL[session.status]}
@@ -185,7 +185,7 @@ export const DayAgenda = ({
         className="mt-7 inline-flex items-center gap-2 rounded-md bg-[#6A3710] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#502815]"
       >
         <GoPlusCircle size={16} />
-        Registrar sessao
+        Registrar sessão
       </button>
     </section>
   );

@@ -39,6 +39,7 @@ export interface PatientRecord {
   transference: string;
   countertransference: string;
   sessionTitle: string;
+  sessionPrice: number | null;
 }
 
 export interface Patient {

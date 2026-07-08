@@ -97,6 +97,7 @@ function buildPayload(
     location: updates.location ?? session.location,
     notes: updates.notes ?? session.notes,
     clinicalNotes: updates.clinicalNotes ?? session.clinicalNotes,
+    cid: updates.cid ?? session.cid,
     sessionTheme: updates.sessionTheme ?? session.sessionTheme,
     sessionMotives: updates.sessionMotives ?? session.sessionMotives,
     interventions: updates.interventions ?? session.interventions,
@@ -124,6 +125,7 @@ export function SessionDetailsDialog({
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<SessionStatus>('scheduled');
   const [notes, setNotes] = useState('');
+  const [cid, setCid] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [moodScale, setMoodScale] = useState(4);
   const [anxietyScale, setAnxietyScale] = useState(3);
@@ -148,6 +150,7 @@ export function SessionDetailsDialog({
 
     setStatus(initialStatus || session.status);
     setNotes(session.notes || '');
+    setCid(session.cid || '');
     setTags(session.tags || []);
     setMoodScale(session.moodScale || 4);
     setAnxietyScale(session.anxietyScale || 3);
@@ -168,7 +171,7 @@ export function SessionDetailsDialog({
       onSaved(saved);
       onHide();
     } catch (err: any) {
-      setError(err?.message || 'Erro ao salvar sessao.');
+      setError(err?.message || 'Erro ao salvar sessão.');
     } finally {
       setSaving(false);
     }
@@ -207,6 +210,7 @@ export function SessionDetailsDialog({
     await persist({
       status,
       notes,
+      cid: showCompletedFields ? cid : session.cid,
       startsAt,
       endsAt,
       tags: nextTags,
@@ -250,7 +254,7 @@ export function SessionDetailsDialog({
             >
               <FiArrowLeft size={24} />
             </button>
-            <h1 className="text-2xl font-bold text-[#3A1C0B]">Detalhes da sessao</h1>
+            <h1 className="text-2xl font-bold text-[#3A1C0B]">Detalhes da sessão</h1>
           </div>
 
           <div className="mb-6 flex items-center gap-5">
@@ -360,6 +364,14 @@ export function SessionDetailsDialog({
 
           {showCompletedFields ? (
             <>
+              <label className="mb-1 text-sm font-bold text-[#111111]">CID</label>
+              <input
+                value={cid}
+                onChange={(event) => setCid(event.target.value)}
+                className="mb-5 rounded border border-[#6A3710] px-3 py-2 text-sm"
+                placeholder="Ex: F41.1"
+              />
+
               <h3 className="mb-2 text-sm font-bold text-[#111111]">Tags</h3>
               <div className="mb-4 flex flex-wrap gap-2">
                 {TAG_OPTIONS.map((tag) => (
@@ -433,7 +445,7 @@ export function SessionDetailsDialog({
           {confirmingDelete ? (
             <div className="mb-4 rounded-md border border-[#B42318] bg-[#FEE4E2] p-3">
               <p className="mb-3 text-sm font-semibold text-[#3A1C0B]">
-                Tem certeza que deseja excluir esta sessao?
+                Tem certeza que deseja excluir esta sessão?
               </p>
               <div className="flex gap-2">
                 <button
@@ -481,7 +493,7 @@ export function SessionDetailsDialog({
               disabled={saving || deleting}
               className="rounded-md bg-[#B42318] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
-              Excluir sessao
+              Excluir sessão
             </button>
           </div>
         </div>

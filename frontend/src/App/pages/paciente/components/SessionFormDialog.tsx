@@ -73,12 +73,13 @@ export function SessionFormDialog({
   const selectedPatient = patient || patients.find((item) => item.id === selectedPatientId) || null;
   const [title, setTitle] = useState(
     session?.title ||
-      (blankInitialTitle ? '' : selectedPatient ? `Sessao - ${selectedPatient.fullName}` : 'Sessao')
+      (blankInitialTitle ? '' : selectedPatient ? `Sessão - ${selectedPatient.fullName}` : 'Sessão')
   );
   const [sessionNumber, setSessionNumber] = useState(session?.sessionNumber?.toString() || '');
   const [startsAt, setStartsAt] = useState(toLocalInputValue(session?.startsAt) || defaultStart);
   const [endsAt, setEndsAt] = useState(toLocalInputValue(session?.endsAt) || defaultEnd);
   const [status, setStatus] = useState<SessionStatus>(session?.status || 'scheduled');
+  const [cid, setCid] = useState(session?.cid || '');
   const [sessionTheme, setSessionTheme] = useState(session?.sessionTheme || '');
   const [sessionMotives, setSessionMotives] = useState(session?.sessionMotives || '');
   const [notes, setNotes] = useState(session?.notes || '');
@@ -97,8 +98,8 @@ export function SessionFormDialog({
   }, [patient, patients, selectedPatientId]);
 
   useEffect(() => {
-    if (!blankInitialTitle && !session && selectedPatient && (!title || title === 'Sessao')) {
-      setTitle(`Sessao - ${selectedPatient.fullName}`);
+    if (!blankInitialTitle && !session && selectedPatient && (!title || title === 'Sessão')) {
+      setTitle(`Sessão - ${selectedPatient.fullName}`);
     }
   }, [blankInitialTitle, selectedPatient, session, title]);
 
@@ -136,7 +137,7 @@ export function SessionFormDialog({
     setError(null);
 
     if (!startsAt || !endsAt) {
-      setError('Informe inicio e fim da sessao.');
+      setError('Informe inicio e fim da sessão.');
       return;
     }
 
@@ -146,7 +147,7 @@ export function SessionFormDialog({
     }
 
     if (syncGoogle && !googleConnected) {
-      setError('Conecte o Google Agenda antes de sincronizar a sessao.');
+      setError('Conecte o Google Agenda antes de sincronizar a sessão.');
       return;
     }
 
@@ -158,6 +159,7 @@ export function SessionFormDialog({
       endsAt: fromLocalInputValue(endsAt),
       timezone: 'America/Sao_Paulo',
       status,
+      cid,
       sessionTheme,
       sessionMotives,
       moodScale: session?.moodScale ?? null,
@@ -174,7 +176,7 @@ export function SessionFormDialog({
       const saved = await saveSession(payload, session?.id);
       onSaved(saved);
     } catch (err: any) {
-      setError(err?.message || 'Erro ao salvar sessao.');
+      setError(err?.message || 'Erro ao salvar sessão.');
     } finally {
       setSaving(false);
     }
@@ -182,7 +184,7 @@ export function SessionFormDialog({
 
   return (
     <Dialog
-      header={session ? 'Editar sessao' : 'Adicionar sessao'}
+      header={session ? 'Editar sessão' : 'Adicionar sessão'}
       visible={visible}
       onHide={onHide}
       modal
@@ -260,6 +262,16 @@ export function SessionFormDialog({
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="text-sm font-medium text-[#502815]">
+          CID
+          <input
+            value={cid}
+            onChange={(event) => setCid(event.target.value)}
+            className="mt-1 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+            placeholder="Ex: F41.1"
+          />
         </label>
 
         <label className="text-sm font-medium text-[#502815]">

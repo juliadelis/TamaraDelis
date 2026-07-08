@@ -23,6 +23,7 @@ type SessionRow = {
   location: string | null;
   notes: string | null;
   clinical_notes: string | null;
+  cid: string | null;
   session_theme: string | null;
   session_motives: string | null;
   interventions: string[] | null;
@@ -37,6 +38,10 @@ type SessionRow = {
   google_meet_link: string | null;
   google_sync_status: string | null;
   google_last_synced_at: string | null;
+  session_price: number | null;
+  payment_status: 'pending' | 'paid' | 'cancelled' | null;
+  paid_at: string | null;
+  paid_amount: number | null;
   created_at: string;
   updated_at: string | null;
   patients?: {
@@ -90,6 +95,7 @@ function rowToSession(row: SessionRow) {
     location: row.location || '',
     notes: row.notes || '',
     clinicalNotes: row.clinical_notes || '',
+    cid: row.cid || '',
     sessionTheme: row.session_theme || '',
     sessionMotives: row.session_motives || '',
     interventions: row.interventions || [],
@@ -104,6 +110,10 @@ function rowToSession(row: SessionRow) {
     googleMeetLink: row.google_meet_link || '',
     googleSyncStatus: row.google_sync_status || '',
     googleLastSyncedAt: row.google_last_synced_at || '',
+    sessionPrice: row.session_price,
+    paymentStatus: row.payment_status || 'pending',
+    paidAt: row.paid_at || '',
+    paidAmount: row.paid_amount,
     createdAt: row.created_at,
     updatedAt: row.updated_at || '',
   };
@@ -123,6 +133,7 @@ function requestToRow(body: Record<string, unknown>, userId: string) {
     location: text(body.location) || null,
     notes: text(body.notes) || null,
     clinical_notes: text(body.clinicalNotes) || null,
+    cid: text(body.cid) || null,
     session_theme: text(body.sessionTheme) || null,
     session_motives: text(body.sessionMotives) || null,
     interventions: stringArray(body.interventions),
@@ -133,6 +144,62 @@ function requestToRow(body: Record<string, unknown>, userId: string) {
     rescheduled_from_starts_at: text(body.rescheduledFromStartsAt) || null,
     rescheduled_from_ends_at: text(body.rescheduledFromEndsAt) || null,
     updated_at: new Date().toISOString(),
+  };
+}
+
+async function getEffectiveSessionPrice(patientId: string, startsAt: string) {
+  const sessionDate = startsAt || new Date().toISOString();
+  const { data: priceRows } = await supabase
+    .from('patient_session_prices')
+    .select('price')
+    .eq('patient_id', patientId)
+    .lte('starts_at', sessionDate)
+    .or(`ends_at.is.null,ends_at.gt.${sessionDate}`)
+    .order('starts_at', { ascending: false })
+    .limit(1);
+
+  const price = Array.isArray(priceRows) && priceRows[0]?.price;
+  if (price !== undefined && price !== null) {
+    return Number(price);
+  }
+
+  const { data: patient } = await supabase
+    .from('patients')
+    .select('session_price')
+    .eq('id', patientId)
+    .single();
+
+  const fallbackPrice = (patient as { session_price?: number | null } | null)?.session_price;
+  return fallbackPrice === undefined || fallbackPrice === null ? null : Number(fallbackPrice);
+}
+
+async function applyPaymentAutomation(
+  payload: ReturnType<typeof requestToRow>,
+  existing?: Pick<SessionRow, 'payment_status' | 'paid_at' | 'paid_amount' | 'session_price'> | null
+): Promise<ReturnType<typeof requestToRow> & {
+  session_price: number | null;
+  payment_status: 'pending' | 'paid' | 'cancelled';
+  paid_at: string | null;
+  paid_amount: number | null;
+}> {
+  const sessionPrice = existing?.session_price ?? (await getEffectiveSessionPrice(payload.patient_id, payload.starts_at));
+
+  if (payload.status === 'completed') {
+    return {
+      ...payload,
+      session_price: sessionPrice,
+      payment_status: 'paid',
+      paid_at: existing?.payment_status === 'paid' && existing.paid_at ? existing.paid_at : new Date().toISOString(),
+      paid_amount: sessionPrice,
+    };
+  }
+
+  return {
+    ...payload,
+    session_price: sessionPrice,
+    payment_status: payload.status === 'cancelled' ? 'cancelled' : 'pending',
+    paid_at: null,
+    paid_amount: null,
   };
 }
 
@@ -209,7 +276,7 @@ router.post('/', async (req, res) => {
   const payload = requestToRow(req.body, userId);
 
   if (!payload.patient_id || !payload.starts_at || !payload.ends_at) {
-    return res.status(400).json({ error: 'Paciente, inicio e fim da sessao sao obrigatorios.' });
+    return res.status(400).json({ error: 'Paciente, inicio e fim da sessão sao obrigatorios.' });
   }
 
   let syncGoogle = false;
@@ -221,7 +288,7 @@ router.post('/', async (req, res) => {
 
   const { data, error } = await supabase
     .from('patient_sessions')
-    .insert(payload)
+    .insert(await applyPaymentAutomation(payload))
     .select('*, patients(full_name, email)')
     .single();
 
@@ -243,7 +310,7 @@ router.put('/:id', async (req, res) => {
   const payload = requestToRow(req.body, userId);
 
   if (!payload.patient_id || !payload.starts_at || !payload.ends_at) {
-    return res.status(400).json({ error: 'Paciente, inicio e fim da sessao sao obrigatorios.' });
+    return res.status(400).json({ error: 'Paciente, inicio e fim da sessão sao obrigatorios.' });
   }
 
   let syncGoogle = false;
@@ -253,9 +320,20 @@ router.put('/:id', async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
+  const { data: existing, error: existingError } = await supabase
+    .from('patient_sessions')
+    .select('payment_status, paid_at, paid_amount, session_price')
+    .eq('id', req.params.id)
+    .eq('user_id', userId)
+    .single();
+
+  if (existingError) {
+    return res.status(existingError.code === 'PGRST116' ? 404 : 500).json({ error: existingError.message });
+  }
+
   const { data, error } = await supabase
     .from('patient_sessions')
-    .update(payload)
+    .update(await applyPaymentAutomation(payload, existing as SessionRow))
     .eq('id', req.params.id)
     .eq('user_id', userId)
     .select('*, patients(full_name, email)')

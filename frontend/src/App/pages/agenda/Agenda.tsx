@@ -56,6 +56,13 @@ export const Agenda = () => {
     () => Array.from(new Set(sessions.map((session) => new Date(session.startsAt).getDate()))),
     [sessions]
   );
+  const monthlyPatientCount = useMemo(
+    () => new Set(sessions.map((session) => session.patientId)).size,
+    [sessions]
+  );
+
+  const sessionLabel = sessions.length === 1 ? 'sessão' : 'sessões';
+  const patientLabel = monthlyPatientCount === 1 ? 'paciente' : 'pacientes';
 
   const handleMonthChange = (month: number) => {
     setCurrentMonth(month);
@@ -94,7 +101,6 @@ export const Agenda = () => {
 
         <div className="max-w-3xl">
           <AgendaCalendar
-            selectedDate={selectedDate}
             month={currentMonth}
             year={currentYear}
             scheduleDays={scheduleDays}
@@ -102,6 +108,15 @@ export const Agenda = () => {
             onMonthChange={handleMonthChange}
             onYearChange={handleYearChange}
           />
+
+          <div className="mt-6 space-y-3 text-left text-sm font-bold text-[#502815]">
+            <p>
+              {sessions.length} {sessionLabel}
+            </p>
+            <p>
+              {monthlyPatientCount} {patientLabel}
+            </p>
+          </div>
         </div>
       </div>
     </div>

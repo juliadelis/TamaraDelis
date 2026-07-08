@@ -34,6 +34,7 @@ const initialFormState: Partial<PatientRecord> = {
   nextSession: '',
   lastSession: '',
   monthlySessions: '',
+  sessionPrice: null,
   frequentTags: [],
   generalNotes: '',
   sessionNumber: '',
@@ -92,6 +93,15 @@ const patientTagOptions = [
   'PBO',
   'Psicanálise',
 ];
+
+function parseOptionalNumber(value: unknown) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
 export const PatientForm = ({ record, onSave }: PatientFormProps) => {
   const [formValues, setFormValues] = useState<Partial<PatientRecord>>(
@@ -215,6 +225,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
       nextSession: formValues.nextSession || '',
       lastSession: formValues.lastSession || '',
       monthlySessions: formValues.monthlySessions || '',
+      sessionPrice: parseOptionalNumber(formValues.sessionPrice),
       frequentTags: formValues.frequentTags || [],
       generalNotes: formValues.generalNotes || '',
       sessionNumber: formValues.sessionNumber || '',
@@ -554,6 +565,19 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               onChange={handleChange}
               className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="2"
+            />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-[#6A3710]">Valor da sessão</span>
+            <input
+              name="sessionPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formValues.sessionPrice ?? ''}
+              onChange={handleChange}
+              className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              placeholder="160,00"
             />
           </label>
         </div>

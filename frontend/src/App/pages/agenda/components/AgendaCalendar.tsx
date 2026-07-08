@@ -1,7 +1,6 @@
-import { getMonthName, isSameDay } from '../../../../shared/utils/dateUtils';
+import { getMonthName } from '../../../../shared/utils/dateUtils';
 
 interface AgendaCalendarProps {
-  selectedDate: Date;
   month: number;
   year: number;
   scheduleDays: number[];
@@ -28,7 +27,6 @@ const MONTH_NAMES = [
 const WEEK_DAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
 export const AgendaCalendar = ({
-  selectedDate,
   month,
   year,
   scheduleDays,
@@ -107,7 +105,6 @@ export const AgendaCalendar = ({
 
       <div className="mt-3 grid grid-cols-7 gap-3">
         {cells.map((cell, index) => {
-          const isSelected = cell.date && selectedDate && cell.date && isSameDay(cell.date, selectedDate);
           const hasSchedule = cell.date ? scheduleDays.includes(cell.date.getDate()) : false;
 
           return (
@@ -118,9 +115,7 @@ export const AgendaCalendar = ({
               onClick={() => cell.date && onSelectDate(cell.date)}
               className={`h-10 rounded text-sm font-semibold transition duration-200 focus:outline-none ${
                 cell.isCurrentMonth
-                  ? isSelected
-                    ? 'bg-[#502815] text-white shadow-lg'
-                    : hasSchedule
+                  ? hasSchedule
                     ? 'bg-[#6A3710] text-white hover:bg-[#7f4d2b]'
                     : 'bg-white text-[#1E1E1E] hover:bg-[#F2E8DE]'
                   : 'bg-transparent text-transparent cursor-default'

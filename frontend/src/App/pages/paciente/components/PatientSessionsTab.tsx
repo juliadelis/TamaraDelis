@@ -81,7 +81,7 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
         className="mb-6 inline-flex items-center gap-2 rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#502815]"
       >
         <GoPlusCircle size={17} />
-        Adicionar sessao
+        Adicionar sessão
       </button>
 
       <div className="mb-5">
@@ -103,14 +103,14 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
         </div>
       </div>
 
-      <h2 className="mb-3 text-sm font-bold text-[#111111]">Sessoes</h2>
+      <h2 className="mb-3 text-sm font-bold text-[#111111]">Sessões</h2>
       {loading ? (
         <p className="rounded-md border border-[#D79A69] p-4 text-sm text-[#55422f]">
-          Carregando sessoes...
+          Carregando sessões...
         </p>
       ) : sessions.length === 0 ? (
         <p className="rounded-md border border-[#D79A69] p-4 text-sm text-[#55422f]">
-          Nenhuma sessao encontrada no periodo.
+          Nenhuma sessão encontrada no periodo.
         </p>
       ) : (
         <div className="overflow-hidden rounded-sm">

@@ -82,6 +82,7 @@ export interface PatientRecord {
   transference: string;
   countertransference: string;
   sessionTitle: string;
+  sessionPrice: number | null;
 }
 
 type PatientRow = {
@@ -123,6 +124,7 @@ type PatientRow = {
   transference: string | null;
   countertransference: string | null;
   session_title: string | null;
+  session_price: number | null;
 };
 
 const router = Router();
@@ -157,6 +159,15 @@ const defaultClinicalAnalysis: ClinicalAnalysis = {
 
 function text(value: unknown) {
   return typeof value === 'string' ? value : '';
+}
+
+function numberValue(value: unknown) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function nullableDate(value: unknown) {
@@ -219,6 +230,7 @@ function rowToPatient(row: PatientRow): PatientRecord {
     transference: row.transference || '',
     countertransference: row.countertransference || '',
     sessionTitle: row.session_title || '',
+    sessionPrice: row.session_price,
   };
 }
 
@@ -260,6 +272,7 @@ function requestToRow(body: Partial<PatientRecord>) {
     transference: text(body.transference) || null,
     countertransference: text(body.countertransference) || null,
     session_title: text(body.sessionTitle) || null,
+    session_price: numberValue(body.sessionPrice),
   };
 
   if (body.id) {
@@ -267,6 +280,54 @@ function requestToRow(body: Partial<PatientRecord>) {
   }
 
   return row;
+}
+
+async function recordInitialSessionPrice(patientId: string, price: number | null) {
+  if (price === null) {
+    return;
+  }
+
+  const { error } = await supabase.from('patient_session_prices').insert({
+    patient_id: patientId,
+    price,
+    starts_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error('Falha ao registrar valor inicial da sessao:', error);
+  }
+}
+
+async function recordSessionPriceChange(patientId: string, previousPrice: number | null, nextPrice: number | null) {
+  if (previousPrice === nextPrice) {
+    return;
+  }
+
+  const changedAt = new Date().toISOString();
+
+  if (previousPrice !== null) {
+    const { error } = await supabase
+      .from('patient_session_prices')
+      .update({ ends_at: changedAt })
+      .eq('patient_id', patientId)
+      .is('ends_at', null);
+
+    if (error) {
+      console.error('Falha ao encerrar valor anterior da sessao:', error);
+    }
+  }
+
+  if (nextPrice !== null) {
+    const { error } = await supabase.from('patient_session_prices').insert({
+      patient_id: patientId,
+      price: nextPrice,
+      starts_at: changedAt,
+    });
+
+    if (error) {
+      console.error('Falha ao registrar novo valor da sessao:', error);
+    }
+  }
 }
 
 router.get('/', async (_req, res) => {
@@ -308,12 +369,24 @@ router.post('/', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
+  await recordInitialSessionPrice((data as PatientRow).id, (data as PatientRow).session_price);
+
   return res.status(201).json(rowToPatient(data as PatientRow));
 });
 
 router.put('/:id', async (req, res) => {
   if (!req.body.fullName) {
     return res.status(400).json({ error: 'Nome é obrigatório.' });
+  }
+
+  const { data: previous, error: previousError } = await supabase
+    .from('patients')
+    .select('session_price')
+    .eq('id', req.params.id)
+    .single();
+
+  if (previousError) {
+    return res.status(previousError.code === 'PGRST116' ? 404 : 500).json({ error: previousError.message });
   }
 
   const payload = requestToRow({ ...req.body, id: req.params.id });
@@ -327,6 +400,12 @@ router.put('/:id', async (req, res) => {
   if (error) {
     return res.status(error.code === 'PGRST116' ? 404 : 500).json({ error: error.message });
   }
+
+  await recordSessionPriceChange(
+    req.params.id,
+    (previous as Pick<PatientRow, 'session_price'>).session_price,
+    (data as PatientRow).session_price
+  );
 
   return res.json(rowToPatient(data as PatientRow));
 });

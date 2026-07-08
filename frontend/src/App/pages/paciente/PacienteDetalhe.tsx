@@ -4,6 +4,7 @@ import { Dialog } from 'primereact/dialog';
 import { IoTrashOutline } from 'react-icons/io5';
 import { deletePatientRecord, getPatientById, getPatientRecord } from '../../../shared/services/patient';
 import type { PatientRecord } from '../../../shared/models/patient.model';
+import { PatientFinancialTab } from './components/PatientFinancialTab';
 import { PatientSessionsTab } from './components/PatientSessionsTab';
 
 const tabs = ['Resumo', 'Sessões', 'Financeiro', 'Prontuário'] as const;
@@ -393,13 +394,17 @@ export const PacienteDetalhe = () => {
               <PatientSessionsTab patient={record} />
             ) : (
               <div className="rounded-md border border-[#C8793D] p-5 text-sm text-[#55422f]">
-                Nenhum paciente encontrado para listar sessoes.
+                Nenhum paciente encontrado para listar sessões.
               </div>
             )
           ) : activeTab === 'Financeiro' ? (
-            <div className="rounded-md border border-[#C8793D] p-5 text-sm text-[#55422f]">
-              Esta aba ainda está vazia. Em breve será utilizada para gerenciar financeiro.
-            </div>
+            record ? (
+              <PatientFinancialTab patient={record} />
+            ) : (
+              <div className="rounded-md border border-[#C8793D] p-5 text-sm text-[#55422f]">
+                Nenhum paciente encontrado para listar financeiro.
+              </div>
+            )
           ) : (
             <ProntuarioView record={record} />
           )}

@@ -178,7 +178,7 @@ export const Home = () => {
       await loadSchedule();
     } catch (error) {
       console.error(error);
-      setScheduleError(error instanceof Error ? error.message : 'Falha ao excluir sessao.');
+      setScheduleError(error instanceof Error ? error.message : 'Falha ao excluir sessão.');
     } finally {
       setDeleting(false);
     }

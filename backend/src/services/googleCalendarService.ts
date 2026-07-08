@@ -263,7 +263,7 @@ export async function upsertGoogleCalendarEvent(userId: string, session: Session
 
   const calendarId = session.google_calendar_id || connection.calendar_id || 'primary';
   const patientName = session.patients?.full_name || 'Paciente';
-  const title = session.title || `Sessao - ${patientName}`;
+  const title = session.title || `Sessão - ${patientName}`;
 
   const eventBody = {
     summary: title,

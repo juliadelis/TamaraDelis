@@ -16,6 +16,7 @@ export interface PatientSession {
   location: string;
   notes: string;
   clinicalNotes: string;
+  cid: string;
   sessionTheme: string;
   sessionMotives: string;
   interventions: string[];
@@ -30,6 +31,10 @@ export interface PatientSession {
   googleMeetLink: string;
   googleSyncStatus: string;
   googleLastSyncedAt: string;
+  sessionPrice: number | null;
+  paymentStatus: 'pending' | 'paid' | 'cancelled';
+  paidAt: string;
+  paidAmount: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,6 +51,7 @@ export type PatientSessionPayload = {
   location?: string;
   notes?: string;
   clinicalNotes?: string;
+  cid?: string;
   sessionTheme?: string;
   sessionMotives?: string;
   interventions?: string[];

@@ -89,7 +89,7 @@ export function getRefreshToken() {
 export async function refreshAuthSession() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
-    throw new Error('Sessao expirada. Faca login novamente.');
+    throw new Error('Sessão expirada. Faça login novamente.');
   }
 
   const response = await fetch(`${API_URL}/api/auth/refresh`, {
@@ -103,7 +103,7 @@ export async function refreshAuthSession() {
   const body = await response.json();
   if (!response.ok || !body.session?.access_token) {
     logout();
-    throw new Error(body?.error || 'Sessao expirada. Faca login novamente.');
+    throw new Error(body?.error || 'Sessão expirada. Faca login novamente.');
   }
 
   saveAuthSession(body.session, body.user || getUser() || {});
