@@ -29,13 +29,14 @@ export const Login = () => {
     }
 
     if (accessToken && refreshToken && expiresIn && user) {
+      const parsedUser = JSON.parse(user);
       saveAuthSession(
         {
           access_token: accessToken,
           refresh_token: refreshToken,
           expires_in: Number(expiresIn),
         },
-        JSON.parse(user)
+        parsedUser
       );
       navigate(next, { replace: true });
     }
@@ -53,6 +54,11 @@ export const Login = () => {
       await login(email, password);
       navigate('/home');
     } catch (err: any) {
+      if (String(err?.message || '').toLowerCase().includes('permiss')) {
+        navigate('/sem-permissao');
+        return;
+      }
+
       setError(err?.message || 'Erro ao entrar');
     } finally {
       setLoading(false);

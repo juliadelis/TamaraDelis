@@ -7,6 +7,20 @@ const router = Router();
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
+function getAllowedEmails() {
+  return new Set(
+    (process.env.ALLOWED_LOGIN_EMAILS || '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function isAllowedEmail(email?: string | null) {
+  const allowedEmails = getAllowedEmails();
+  return allowedEmails.size > 0 && allowedEmails.has((email || '').trim().toLowerCase());
+}
+
 function getGoogleRedirectUri() {
   return `${process.env.API_PUBLIC_URL || 'http://localhost:4006'}/api/auth/google/callback`;
 }
@@ -38,6 +52,9 @@ router.post('/login', async (req, res) => {
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return res.status(401).json({ error: error.message });
+    if (!isAllowedEmail(data.user?.email)) {
+      return res.status(403).json({ error: 'Você não tem permissão para visualizar o sistema.' });
+    }
 
     // data contains session and user
     return res.json({ session: data.session, user: data.user });
@@ -59,6 +76,9 @@ router.post('/refresh', async (req, res) => {
 
     if (error || !data.session) {
       return res.status(401).json({ error: error?.message || 'Invalid refresh token' });
+    }
+    if (!isAllowedEmail(data.user?.email)) {
+      return res.status(403).json({ error: 'Você não tem permissão para visualizar o sistema.' });
     }
 
     return res.json({ session: data.session, user: data.user });
@@ -169,6 +189,9 @@ router.get('/google/callback', async (req, res) => {
 
   if (error || !data.session || !data.user) {
     return res.redirect(`${frontendUrl}/login?error=google_oauth_failed`);
+  }
+  if (!isAllowedEmail(data.user.email)) {
+    return res.redirect(`${frontendUrl}/sem-permissao`);
   }
 
   const expiresAt = new Date(Date.now() + Number(googleTokens.expires_in || 3600) * 1000).toISOString();

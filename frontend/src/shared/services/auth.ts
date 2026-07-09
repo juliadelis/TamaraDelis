@@ -16,6 +16,7 @@ export type AuthUser = {
   [key: string]: any;
 };
 
+
 export async function login(email: string, password: string) {
   const response = await fetch(`${API_URL}/api/auth/login`, {
     method: 'POST',

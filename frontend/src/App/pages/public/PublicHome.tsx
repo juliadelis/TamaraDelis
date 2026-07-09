@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export function PublicHome() {
   return (
-    <main className="min-h-dvh bg-[#FFFDF9] px-5 py-8 text-left text-[#31231A]">
+    <main className="min-h-dvh  px-5 py-8 text-left text-[#31231A]">
       <div className="mx-auto flex min-h-[calc(100dvh-64px)] max-w-4xl flex-col justify-center">
         <header className="flex items-center justify-between gap-4">
           <img src="/logo_brown.svg" alt="Tamara Delis Psicologia" className="h-12 w-auto" />

@@ -4,7 +4,7 @@ const updatedAt = '08/07/2026';
 
 function LegalLayout({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <main className="min-h-dvh bg-[#FFFDF9] px-5 py-8 text-left text-[#31231A]">
+    <main className="min-h-dvh  px-5 py-8 text-left text-[#31231A]">
       <div className="mx-auto max-w-3xl">
         <Link to="/login" className="text-sm font-semibold text-[#6A3710] underline">
           Voltar para login
