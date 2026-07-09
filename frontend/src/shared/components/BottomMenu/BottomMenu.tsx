@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineHome } from "react-icons/ai";
-import { IoCalendarClearOutline } from "react-icons/io5";
+import { IoCalendarClearOutline, IoDocumentTextOutline } from "react-icons/io5";
 import { PiMoneyWavyLight } from "react-icons/pi";
 import { MdOutlineAutoGraph } from "react-icons/md";
 import { BsPersonBadge } from "react-icons/bs";
@@ -17,6 +17,7 @@ const menuItems: MenuItem[] = [
   { label: "Financeiro", icon: <PiMoneyWavyLight size={25} />, path: "/financeiro" },
   { label: "Relatórios", icon: <MdOutlineAutoGraph size={24} />, path: "/relatorios" },
   { label: "Pacientes", icon: <BsPersonBadge size={23} />, path: "/pacientes" },
+  { label: "Docs", icon: <IoDocumentTextOutline size={22} />, path: "/documentos" },
 ];
 
 export function BottomMenu() {
@@ -40,7 +41,7 @@ export function BottomMenu() {
         zIndex: 9999,
       }}
     >
-      <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-stretch">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-6 items-stretch">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (

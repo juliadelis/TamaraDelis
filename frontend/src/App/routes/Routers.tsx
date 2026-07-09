@@ -3,6 +3,7 @@ import { MainLayout } from "../layout";
 import { Home } from "../pages/home/Home";
 import { Agenda } from "../pages/agenda/Agenda";
 import { AgendaDia } from "../pages/agenda/AgendaDia";
+import { Documentos } from "../pages/documentos/Documentos";
 import { Financeiro } from "../pages/financeiro/Financeiro";
 import { Paciente } from "../pages/paciente/Paciente";
 import { PacienteDetalhe } from "../pages/paciente/PacienteDetalhe";
@@ -30,6 +31,7 @@ export function routerFactory() {
             { path: "home", element: <Home /> },
             { path: "agenda", element: <Agenda /> },
             { path: "agenda/:date", element: <AgendaDia /> },
+            { path: "documentos", element: <Documentos /> },
             { path: "financeiro", element: <Financeiro /> },
             { path: "relatorios", element: <Relatorios /> },
             { path: "pacientes", element: <Paciente /> },
