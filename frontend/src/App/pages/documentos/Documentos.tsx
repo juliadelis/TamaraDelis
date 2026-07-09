@@ -496,6 +496,11 @@ export function Documentos() {
     window.location.href = `mailto:${selectedPatient.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareMessage)}`;
   };
 
+  const isDeclaracao = form.documentType === 'declaracao';
+  const isAtestado = form.documentType === 'atestado';
+  const isLaudo = form.documentType === 'laudo';
+  const isParecer = form.documentType === 'parecer';
+
   return (
     <div className="mx-auto max-w-full text-left">
       <style>
@@ -749,7 +754,7 @@ export function Documentos() {
               </select>
             </label>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="hidden">
               <TextField label="Nome do paciente" name="patientName" value={form.patientName} onChange={updateField} />
               <TextField label="CPF do paciente" name="patientCpf" value={form.patientCpf} onChange={updateField} />
               <TextField label="Primeira consulta" name="firstConsultationDate" value={form.firstConsultationDate} onChange={updateField} type="date" />
@@ -768,6 +773,54 @@ export function Documentos() {
               <TextAreaField label="Diagnóstico / quadro clínico" name="diagnosis" value={form.diagnosis} onChange={updateField} />
               <TextAreaField label="Conclusão / parecer" name="conclusion" value={form.conclusion} onChange={updateField} />
               <TextAreaField label="Referências" name="references" value={form.references} onChange={updateField} />
+              <SignaturePad value={signatureDataUrl} onChange={setSignatureDataUrl} />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Nome do paciente" name="patientName" value={form.patientName} onChange={updateField} />
+              <TextField label="CPF do paciente" name="patientCpf" value={form.patientCpf} onChange={updateField} />
+              <TextField label="Data de emissão" name="issueDate" value={form.issueDate} onChange={updateField} type="date" />
+
+              {(isAtestado || isLaudo) && (
+                <TextField label="Primeira consulta" name="firstConsultationDate" value={form.firstConsultationDate} onChange={updateField} type="date" />
+              )}
+
+              {isDeclaracao && (
+                <>
+                  <TextField label="Data de comparecimento" name="appointmentDate" value={form.appointmentDate} onChange={updateField} type="date" />
+                  <TextField label="Horário inicial" name="appointmentStart" value={form.appointmentStart} onChange={updateField} />
+                  <TextField label="Horário final" name="appointmentEnd" value={form.appointmentEnd} onChange={updateField} />
+                </>
+              )}
+
+              {isAtestado && (
+                <>
+                  <TextField label="Frequência" name="frequency" value={form.frequency} onChange={updateField} />
+                  <TextField label="Restrição/afastamento de" name="restriction" value={form.restriction} onChange={updateField} />
+                  <TextField label="Quantidade de dias" name="leaveDays" value={form.leaveDays} onChange={updateField} />
+                </>
+              )}
+
+              {isLaudo && (
+                <>
+                  <TextField label="Modalidade" name="modality" value={form.modality} onChange={updateField} />
+                  <TextAreaField label="Descrição da demanda" name="demandDescription" value={form.demandDescription} onChange={updateField} />
+                  <TextAreaField label="Procedimento" name="procedure" value={form.procedure} onChange={updateField} />
+                  <TextAreaField label="Análise" name="analysis" value={form.analysis} onChange={updateField} />
+                  <TextAreaField label="Conclusão / parecer" name="conclusion" value={form.conclusion} onChange={updateField} />
+                  <TextAreaField label="Referências" name="references" value={form.references} onChange={updateField} />
+                </>
+              )}
+
+              {isParecer && (
+                <>
+                  <TextField label="Modalidade" name="modality" value={form.modality} onChange={updateField} />
+                  <TextAreaField label="Assunto" name="subject" value={form.subject} onChange={updateField} />
+                  <TextAreaField label="Diagnóstico / quadro clínico" name="diagnosis" value={form.diagnosis} onChange={updateField} />
+                  <TextAreaField label="Conclusão / parecer" name="conclusion" value={form.conclusion} onChange={updateField} />
+                </>
+              )}
+
               <SignaturePad value={signatureDataUrl} onChange={setSignatureDataUrl} />
             </div>
 
