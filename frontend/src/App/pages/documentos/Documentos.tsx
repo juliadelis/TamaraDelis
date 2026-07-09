@@ -355,20 +355,24 @@ function DocumentBody({ form }: { form: DocumentForm }) {
 
 function DocumentPreview({ form, signatureDataUrl }: { form: DocumentForm; signatureDataUrl: string }) {
   return (
-    <article className="document-print-area relative mx-auto flex min-h-280 max-w-198.5 flex-col overflow-hidden bg-white px-16 py-14 text-left text-[#111111] shadow-sm print:shadow-none">
-      <img src="/logo.svg" alt="" className="pointer-events-none absolute left-1/2 top-1/2 w-95 -translate-x-1/2 -translate-y-1/2 opacity-[0.06]" />
-      <header className="relative z-10 flex items-start justify-between gap-6">
+    <article className="document-print-area relative mx-auto flex min-h-auto max-w-198.5 flex-col overflow-hidden bg-white px-16 pb-14 pt-10 text-left text-[#111111] shadow-sm print:pt-0 print:shadow-none">
+      <img
+        src="/logo.svg"
+        alt=""
+        className="document-watermark pointer-events-none absolute left-1/2 top-1/2 z-0 w-130 -translate-x-1/2 -translate-y-1/2 opacity-[0.10] print:w-[145mm]"
+      />
+      <header className="document-letterhead relative z-10 flex items-start justify-between gap-6">
         <div>
           <h2 className="text-xl font-bold text-[#6A3710]">Tamara Delis</h2>
           <p className="text-xs text-[#6A3710]">Psicóloga - CRP/SP 06/106405</p>
         </div>
-        <img src="/logo.svg" alt="Tamara Delis" className="h-12 w-auto opacity-90" />
+        <img src="/logo_brown.svg" alt="Tamara Delis" className="h-12 w-auto opacity-90" />
       </header>
 
-      <div className="relative z-10 mt-16 flex-1 space-y-5 pb-14 text-[15px] leading-8">
+      <div className="document-content relative z-10 mt-12 flex-1 space-y-5 pb-14 text-[15px] leading-8">
         <DocumentBody form={form} />
-        <p className="pt-5 text-right">Itapetininga/SP, {longDate(form.issueDate)}.</p>
-        <div className="signature-block pt-12 text-center">
+        <p className="pt-2 text-right">Itapetininga/SP, {longDate(form.issueDate)}.</p>
+        <div className="signature-block pt-10 text-center">
           {signatureDataUrl ? (
             <img
               src={signatureDataUrl}
@@ -382,7 +386,7 @@ function DocumentPreview({ form, signatureDataUrl }: { form: DocumentForm; signa
         </div>
       </div>
 
-      <footer className="relative z-10 mt-auto shrink-0 border-t border-[#D8C0A3] pt-3 text-center text-[11px] leading-5 text-[#6A3710]">
+      <footer className="document-footer relative z-10 mt-auto shrink-0 border-t border-[#D8C0A3] pt-3 text-center text-[11px] leading-5 text-[#6A3710]">
         {ADDRESS_LINES.map((line) => (
           <p key={line}>{line}</p>
         ))}
@@ -501,7 +505,7 @@ export function Documentos() {
             color: #502815;
             font-size: 24px;
             font-weight: 700;
-            margin-bottom: 32px;
+            margin-bottom: 0;
             text-transform: uppercase;
           }
 
@@ -509,19 +513,35 @@ export function Documentos() {
             color: #502815;
             font-size: 16px;
             font-weight: 700;
-            margin-top: 18px;
+            margin-top: 10px;
+            margin-bottom: 0;
           }
 
-          .document-print-area .signature-block,
-          .document-print-area footer {
+          .document-print-area h2 + p {
+            margin-top: 2px;
+          }
+
+          .document-print-area .document-letterhead,
+          .document-print-area .document-footer {
             break-inside: avoid;
             page-break-inside: avoid;
+          }
+
+          .document-print-area .signature-block {
+            break-inside: auto;
+            page-break-inside: auto;
           }
 
           @media print {
             @page {
               size: A4;
               margin: 0;
+            }
+
+            html,
+            body {
+              margin: 0;
+              padding: 0;
             }
 
             body * {
@@ -534,13 +554,138 @@ export function Documentos() {
             }
 
             .document-print-area {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 210mm;
-              min-height: 297mm;
+              position: static;
+              display: block;
+              width: auto;
+              min-height: auto;
               max-width: none;
-              padding: 18mm 18mm 14mm;
+              overflow: visible;
+              padding: 4mm 18mm 10mm;
+              box-shadow: none;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            .document-print-area .document-letterhead {
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              display: flex;
+              align-items: flex-start;
+              justify-content: space-between;
+            }
+
+            .document-print-area .document-footer {
+              display: none;
+            }
+
+            .document-print-area::after {
+              content: "Larizzate Boulevard & Offices • Andar 4 • Sala 404\\A R. Aristides Lobo, 224 - Centro, Itapetininga - SP, 18200-185";
+              position: fixed;
+              left: 0;
+              right: 0;
+              bottom: 7mm;
+              z-index: 30;
+              display: block;
+              border-top: 1px solid #D8C0A3;
+              padding-top: 3mm;
+              text-align: center;
+              white-space: pre-line;
+              color: #6A3710;
+              font-size: 10px;
+              line-height: 1.7;
+              visibility: visible;
+            }
+
+            .document-print-area .document-watermark {
+              position: fixed;
+              left: 50%;
+              top: 50%;
+              width: 145mm;
+              opacity: 0.10;
+            }
+
+            .document-print-area::after {
+              content: "Larizzate Boulevard & Offices • Andar 4 • Sala 404\A R. Aristides Lobo, 224 - Centro, Itapetininga - SP, 18200-185";
+              position: fixed;
+              left: 0;
+              right: 0;
+              bottom: 7mm;
+              z-index: 30;
+              display: block;
+              border-top: 1px solid #D8C0A3;
+              padding-top: 3mm;
+              text-align: center;
+              white-space: pre-line;
+              color: #6A3710;
+              font-size: 10px;
+              line-height: 1.7;
+              visibility: visible;
+            }
+
+            .document-print-area .document-content {
+              display: block;
+              margin-top: 0;
+              padding-bottom: 0;
+            }
+
+            .document-print-area h1 {
+              margin-top: 0;
+            }
+
+            .document-print-area .signature-block {
+              margin-bottom: 0;
+              padding-top: 5mm;
+            }
+
+            .document-print-area .document-letterhead {
+              position: static !important;
+              display: flex !important;
+              align-items: flex-start;
+              justify-content: space-between;
+              margin-bottom: 8mm;
+            }
+
+            .document-print-area .document-footer {
+              position: static !important;
+              display: block !important;
+              margin-top: 12mm;
+            }
+
+            .document-print-area::after {
+              content: none !important;
+              display: none !important;
+            }
+
+            .document-print-area {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              box-sizing: border-box !important;
+              width: 210mm !important;
+              padding: 10mm 18mm 10mm !important;
+            }
+
+            .document-print-area .document-letterhead {
+              margin-bottom: 6mm !important;
+            }
+
+            .document-print-area .document-content {
+              gap: 8px !important;
+            }
+
+            .document-print-area .document-content > * + * {
+              margin-top: 8px !important;
+            }
+
+            .document-print-area h2 {
+              margin-top: 6px !important;
+              margin-bottom: 0 !important;
+            }
+
+            .document-print-area h2 + p {
+              margin-top: 0 !important;
             }
           }
         `}
@@ -656,6 +801,7 @@ export function Documentos() {
               </div>
 
               <p className="text-xs leading-5 text-[#6B5A4B]">
+                Na janela de impressão, desmarque a opção "Cabeçalhos e rodapés" para remover a data, o nome da página e a URL do PDF.
                 Depois de salvar o PDF, use uma das opções acima para abrir o contato do paciente com a mensagem pronta e anexar o arquivo.
               </p>
             </div>
