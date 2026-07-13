@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import type { MonthlyFinancialSummary } from '../../../shared/models/finance.model';
 import { getMonthlyFinancialSummary } from '../../../shared/services/finance';
 
+type FinancialReportFilter = 'all' | 'paid' | 'upcoming' | 'completedUnpaid';
+
 const MONTHS = [
   'Janeiro',
   'Fevereiro',
@@ -17,6 +19,13 @@ const MONTHS = [
   'Outubro',
   'Novembro',
   'Dezembro',
+];
+
+const REPORT_FILTERS: { value: FinancialReportFilter; label: string }[] = [
+  { value: 'all', label: 'Relatório geral' },
+  { value: 'paid', label: 'Sessões pagas' },
+  { value: 'upcoming', label: 'Sessões à fazer' },
+  { value: 'completedUnpaid', label: 'Realizadas e não pagas' },
 ];
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -46,12 +55,41 @@ function formatPaymentStatus(value = '') {
   return 'Esperado';
 }
 
+function normalizeSearch(value = '') {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function matchesReportFilter(
+  session: MonthlyFinancialSummary['patients'][number]['sessionDetails'][number],
+  filter: FinancialReportFilter
+) {
+  if (filter === 'paid') {
+    return session.paymentStatus === 'paid';
+  }
+
+  if (filter === 'upcoming') {
+    return session.status === 'scheduled';
+  }
+
+  if (filter === 'completedUnpaid') {
+    return session.status === 'completed' && session.paymentStatus !== 'paid';
+  }
+
+  return true;
+}
+
 export function Financeiro() {
   const today = useMemo(() => new Date(), []);
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [year, setYear] = useState(today.getFullYear());
   const [summary, setSummary] = useState<MonthlyFinancialSummary | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [reportFilter, setReportFilter] = useState<FinancialReportFilter>('all');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -76,10 +114,30 @@ export function Financeiro() {
     loadSummary();
   }, [month, year]);
 
-  const patients = summary?.patients || [];
-  const totalReceived = summary?.totalReceived || 0;
-  const totalExpected = summary?.totalExpected || 0;
-  const totalSessions = summary?.totalSessions || 0;
+  const patients = useMemo(() => {
+    const searchTerm = normalizeSearch(search);
+
+    return (summary?.patients || [])
+      .filter((patient) => normalizeSearch(patient.patientName).includes(searchTerm))
+      .map((patient) => {
+        const sessionDetails = patient.sessionDetails.filter((session) =>
+          matchesReportFilter(session, reportFilter)
+        );
+
+        return {
+          ...patient,
+          sessionDetails,
+          received: sessionDetails.reduce((total, session) => total + session.receivedAmount, 0),
+          expected: sessionDetails.reduce((total, session) => total + session.expectedAmount, 0),
+          sessions: sessionDetails.length,
+        };
+      })
+      .filter((patient) => patient.sessions > 0 || reportFilter === 'all');
+  }, [reportFilter, search, summary]);
+
+  const totalReceived = patients.reduce((total, patient) => total + patient.received, 0);
+  const totalExpected = patients.reduce((total, patient) => total + patient.expected, 0);
+  const totalSessions = patients.reduce((total, patient) => total + patient.sessions, 0);
   const selectedPatient = patients.find((patient) => patient.patientId === selectedPatientId) || null;
 
   useEffect(() => {
@@ -123,6 +181,31 @@ export function Financeiro() {
               ))}
             </select>
           </label>
+
+          <label className="text-sm font-semibold text-[#502815]">
+            Relatorio
+            <select
+              value={reportFilter}
+              onChange={(event) => setReportFilter(event.target.value as FinancialReportFilter)}
+              className="mt-1 block rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm font-semibold text-[#502815] outline-none"
+            >
+              {REPORT_FILTERS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="min-w-[220px] flex-1 text-sm font-semibold text-[#502815]">
+            Buscar paciente
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="mt-1 block w-full rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm font-semibold text-[#502815] outline-none"
+              placeholder="Nome do paciente"
+            />
+          </label>
         </div>
 
         <h2 className="mt-7 text-base font-bold text-[#3A1C0B]">Pagamentos</h2>
@@ -137,7 +220,7 @@ export function Financeiro() {
           </p>
         ) : patients.length === 0 ? (
           <p className="mt-4 rounded-md border border-[#D79A69] p-4 text-sm text-[#55422f]">
-            Nenhuma sessao marcada neste mes.
+            Nenhuma sessao encontrada para os filtros selecionados.
           </p>
         ) : (
           <div className="mt-4 space-y-3">

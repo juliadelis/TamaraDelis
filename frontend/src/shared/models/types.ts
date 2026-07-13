@@ -76,11 +76,16 @@ export interface PatientRecord {
   sessionTheme: string;
   sessionMotives: string;
   conflictSectors: ConflictSectors;
+  conflictSectorsNotes: string;
   personalityStyle: string;
+  personalityStyleNotes: string;
   psychicDynamics: PsychicDynamics;
+  psychicDynamicsNotes: string;
   clinicalAnalysis: ClinicalAnalysis;
+  clinicalAnalysisNotes: string;
   treatmentType: string[];
   interventions: string[];
+  treatmentNotes: string;
   significants: string;
   fantasyStructure: string;
   transference: string;

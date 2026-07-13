@@ -73,11 +73,16 @@ export interface PatientRecord {
   sessionTheme: string;
   sessionMotives: string;
   conflictSectors: ConflictSectors;
+  conflictSectorsNotes: string;
   personalityStyle: string;
+  personalityStyleNotes: string;
   psychicDynamics: PsychicDynamics;
+  psychicDynamicsNotes: string;
   clinicalAnalysis: ClinicalAnalysis;
+  clinicalAnalysisNotes: string;
   treatmentType: string[];
   interventions: string[];
+  treatmentNotes: string;
   significants: string;
   fantasyStructure: string;
   transference: string;
@@ -116,11 +121,16 @@ type PatientRow = {
   session_theme: string | null;
   session_motives: string | null;
   conflict_sectors: ConflictSectors | null;
+  conflict_sectors_notes: string | null;
   personality_style: string | null;
+  personality_style_notes: string | null;
   psychic_dynamics: PsychicDynamics | null;
+  psychic_dynamics_notes: string | null;
   clinical_analysis: ClinicalAnalysis | null;
+  clinical_analysis_notes: string | null;
   treatment_type: string[] | null;
   interventions: string[] | null;
+  treatment_notes: string | null;
   significants: string | null;
   fantasy_structure: string | null;
   transference: string | null;
@@ -223,11 +233,16 @@ function rowToPatient(row: PatientRow): PatientRecord {
     sessionTheme: row.session_theme || '',
     sessionMotives: row.session_motives || '',
     conflictSectors: row.conflict_sectors || defaultConflictSectors,
+    conflictSectorsNotes: row.conflict_sectors_notes || '',
     personalityStyle: row.personality_style || '',
+    personalityStyleNotes: row.personality_style_notes || '',
     psychicDynamics: row.psychic_dynamics || defaultPsychicDynamics,
+    psychicDynamicsNotes: row.psychic_dynamics_notes || '',
     clinicalAnalysis: row.clinical_analysis || defaultClinicalAnalysis,
+    clinicalAnalysisNotes: row.clinical_analysis_notes || '',
     treatmentType: row.treatment_type || [],
     interventions: row.interventions || [],
+    treatmentNotes: row.treatment_notes || '',
     significants: row.significants || '',
     fantasyStructure: row.fantasy_structure || '',
     transference: row.transference || '',
@@ -266,11 +281,16 @@ function requestToRow(body: Partial<PatientRecord>) {
     session_theme: text(body.sessionTheme) || null,
     session_motives: text(body.sessionMotives) || null,
     conflict_sectors: body.conflictSectors || defaultConflictSectors,
+    conflict_sectors_notes: text(body.conflictSectorsNotes) || null,
     personality_style: text(body.personalityStyle) || null,
+    personality_style_notes: text(body.personalityStyleNotes) || null,
     psychic_dynamics: body.psychicDynamics || defaultPsychicDynamics,
+    psychic_dynamics_notes: text(body.psychicDynamicsNotes) || null,
     clinical_analysis: body.clinicalAnalysis || defaultClinicalAnalysis,
+    clinical_analysis_notes: text(body.clinicalAnalysisNotes) || null,
     treatment_type: stringArray(body.treatmentType),
     interventions: stringArray(body.interventions),
+    treatment_notes: text(body.treatmentNotes) || null,
     significants: text(body.significants) || null,
     fantasy_structure: text(body.fantasyStructure) || null,
     transference: text(body.transference) || null,

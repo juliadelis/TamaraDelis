@@ -155,12 +155,14 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
         { label: 'Orgânico', value: conflictLabel(record, 'organic') },
         { label: 'Trabalho', value: conflictLabel(record, 'work') },
         { label: 'Relacionamento', value: conflictLabel(record, 'relationship') },
+        { label: 'Observacoes sobre setores de conflito', value: record.conflictSectorsNotes || emptyValue },
       ],
     },
     {
       title: 'Dinâmica psíquica',
       items: [
         { label: 'Estilo de personalidade', value: record.personalityStyle || emptyValue },
+        { label: 'Observacoes sobre estilo de personalidade', value: record.personalityStyleNotes || emptyValue },
         { label: 'Congruência', value: selectedCongruence(record) },
         { label: 'Instâncias dominantes', value: joinValues(record.psychicDynamics?.dominantInstances) },
         { label: 'Excesso/Falta', value: joinValues(record.psychicDynamics?.excessLack) },
@@ -169,6 +171,7 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
         { label: 'Defesas primitivas', value: joinValues(record.psychicDynamics?.defenses?.primitive) },
         { label: 'Defesas intermediárias', value: joinValues(record.psychicDynamics?.defenses?.intermediate) },
         { label: 'Defesas maduras', value: joinValues(record.psychicDynamics?.defenses?.mature) },
+        { label: 'Observacoes sobre dinamica psiquica', value: record.psychicDynamicsNotes || emptyValue },
       ],
     },
     {
@@ -182,6 +185,7 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
         { label: 'Anotacao sobre constancia objetal', value: record.clinicalAnalysis?.objectConstancyNotes || emptyValue },
         { label: 'Relação com a realidade', value: record.clinicalAnalysis?.realityRelation || emptyValue },
         { label: 'Apego', value: record.clinicalAnalysis?.attachment || emptyValue },
+        { label: 'Observacoes sobre analise clinica', value: record.clinicalAnalysisNotes || emptyValue },
       ],
     },
     {
@@ -189,6 +193,7 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
       items: [
         { label: 'Tipo de tratamento', value: joinValues(record.treatmentType) },
         { label: 'Intervenções', value: joinValues(record.interventions) },
+        { label: 'Observacoes sobre tratamento', value: record.treatmentNotes || emptyValue },
         { label: 'Significantes S1', value: record.significants || emptyValue },
         { label: 'Estrutura da fantasia', value: record.fantasyStructure || emptyValue },
         { label: 'Transferência', value: record.transference || emptyValue },

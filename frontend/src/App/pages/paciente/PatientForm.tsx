@@ -49,7 +49,9 @@ const initialFormState: Partial<PatientRecord> = {
     work: { internal: false, external: false },
     relationship: { internal: false, external: false },
   },
+  conflictSectorsNotes: '',
   personalityStyle: '',
+  personalityStyleNotes: '',
   psychicDynamics: {
     congruence: [],
     dominantInstances: [],
@@ -58,6 +60,7 @@ const initialFormState: Partial<PatientRecord> = {
     anxietyPoints: '',
     defenses: { primitive: [], intermediate: [], mature: [] },
   },
+  psychicDynamicsNotes: '',
   clinicalAnalysis: {
     falseSelf: [],
     selfConstancy: '',
@@ -68,8 +71,10 @@ const initialFormState: Partial<PatientRecord> = {
     realityRelation: '',
     attachment: '',
   },
+  clinicalAnalysisNotes: '',
   treatmentType: [],
   interventions: [],
+  treatmentNotes: '',
   significants: '',
   fantasyStructure: '',
   transference: '',
@@ -235,11 +240,16 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
       sessionTheme: formValues.sessionTheme || '',
       sessionMotives: formValues.sessionMotives || '',
       conflictSectors: formValues.conflictSectors || initialFormState.conflictSectors!,
+      conflictSectorsNotes: formValues.conflictSectorsNotes || '',
       personalityStyle: formValues.personalityStyle || '',
+      personalityStyleNotes: formValues.personalityStyleNotes || '',
       psychicDynamics: formValues.psychicDynamics || initialFormState.psychicDynamics!,
+      psychicDynamicsNotes: formValues.psychicDynamicsNotes || '',
       clinicalAnalysis: formValues.clinicalAnalysis || initialFormState.clinicalAnalysis!,
+      clinicalAnalysisNotes: formValues.clinicalAnalysisNotes || '',
       treatmentType: formValues.treatmentType || [],
       interventions: formValues.interventions || [],
+      treatmentNotes: formValues.treatmentNotes || '',
       significants: formValues.significants || '',
       fantasyStructure: formValues.fantasyStructure || '',
       transference: formValues.transference || '',
@@ -556,13 +566,13 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
             />
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-[#6A3710]">Notas Gerais</span>
+            <span className="text-sm font-medium text-[#6A3710]">Observações</span>
             <textarea
               name="generalNotes"
               value={formValues.generalNotes || ''}
               onChange={handleChange}
               className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
-              placeholder="Notas gerais sobre o paciente"
+              placeholder="Observações sobre o paciente"
             />
           </label>
         </div>
@@ -672,6 +682,17 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               </div>
             );
           })}
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre setores de conflito</span>
+            <textarea
+              name="conflictSectorsNotes"
+              value={formValues.conflictSectorsNotes || ''}
+              onChange={handleChange}
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              placeholder="Descreva observacoes sobre os setores de conflito"
+            />
+          </label>
         </div>
       </div>
  <Divider />
@@ -701,6 +722,17 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
             </label>
           ))}
         </div>
+
+        <label className="mt-4 block space-y-2">
+          <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre estilo de personalidade</span>
+          <textarea
+            name="personalityStyleNotes"
+            value={formValues.personalityStyleNotes || ''}
+            onChange={handleChange}
+            className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+            placeholder="Descreva observacoes sobre o estilo de personalidade"
+          />
+        </label>
       </div>
  <Divider />
       {/* DINÂMICA PSÍQUICA */}
@@ -900,6 +932,17 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               })}
             </div>
           </div>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre dinamica psiquica</span>
+            <textarea
+              name="psychicDynamicsNotes"
+              value={formValues.psychicDynamicsNotes || ''}
+              onChange={handleChange}
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              placeholder="Descreva observacoes sobre a dinamica psiquica"
+            />
+          </label>
         </div>
       </div>
        <Divider />
@@ -1134,6 +1177,17 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               ))}
             </div>
           </div>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre analise clinica</span>
+            <textarea
+              name="clinicalAnalysisNotes"
+              value={formValues.clinicalAnalysisNotes || ''}
+              onChange={handleChange}
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              placeholder="Descreva observacoes sobre a analise clinica"
+            />
+          </label>
         </div>
       </div>
  <Divider />
@@ -1181,6 +1235,17 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
             </div>
           </div>
         </div>
+
+        <label className="mt-6 block space-y-2">
+          <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre tratamento</span>
+          <textarea
+            name="treatmentNotes"
+            value={formValues.treatmentNotes || ''}
+            onChange={handleChange}
+            className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+            placeholder="Descreva observacoes sobre o tratamento"
+          />
+        </label>
       </div>
  <Divider />
       {/* OBSERVAÇÕES E SIGNIFICANTES */}
