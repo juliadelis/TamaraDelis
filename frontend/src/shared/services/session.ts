@@ -63,6 +63,17 @@ export async function getSessions(filters: SessionFilters = {}) {
   return response.json() as Promise<PatientSession[]>;
 }
 
+export async function getSession(id: string) {
+  const response = await fetchWithAuthRetry(`${API_URL}/api/sessions/${id}`);
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao buscar sessao.');
+  }
+
+  return response.json() as Promise<PatientSession>;
+}
+
 export async function saveSession(payload: PatientSessionPayload, id?: string) {
   const response = await fetchWithAuthRetry(`${API_URL}/api/sessions${id ? `/${id}` : ''}`, {
     method: id ? 'PUT' : 'POST',
@@ -72,6 +83,20 @@ export async function saveSession(payload: PatientSessionPayload, id?: string) {
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(body?.error || 'Falha ao salvar sessão.');
+  }
+
+  return response.json() as Promise<PatientSession>;
+}
+
+export async function updateSessionNotes(id: string, notes: string) {
+  const response = await fetchWithAuthRetry(`${API_URL}/api/sessions/${id}/notes`, {
+    method: 'PATCH',
+    body: JSON.stringify({ notes }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao salvar documento.');
   }
 
   return response.json() as Promise<PatientSession>;

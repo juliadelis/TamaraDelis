@@ -320,6 +320,28 @@ router.get('/:id', async (req, res) => {
   return res.json(rowToSession(data as SessionRow));
 });
 
+router.patch('/:id/notes', async (req, res) => {
+  const userId = (req as any).user.id as string;
+
+  const { data, error } = await supabase
+    .from('patient_sessions')
+    .update({
+      notes: text(req.body.notes) || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', req.params.id)
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .select('*, patients(full_name, email)')
+    .single();
+
+  if (error) {
+    return res.status(error.code === 'PGRST116' ? 404 : 500).json({ error: error.message });
+  }
+
+  return res.json(rowToSession(data as SessionRow));
+});
+
 router.post('/', async (req, res) => {
   const userId = (req as any).user.id as string;
   const payload = requestToRow(req.body, userId);

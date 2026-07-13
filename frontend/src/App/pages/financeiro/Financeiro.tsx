@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Link } from 'react-router-dom';
 import type { MonthlyFinancialSummary } from '../../../shared/models/finance.model';
+import type { PatientSession } from '../../../shared/models/session.model';
 import { getMonthlyFinancialSummary } from '../../../shared/services/finance';
+import { deleteSession, getSession, type DeleteSessionScope } from '../../../shared/services/session';
+import { SessionDetailsDialog } from '../agenda/components/SessionDetailsDialog';
+import { SessionFormDialog } from '../paciente/components/SessionFormDialog';
 
 type FinancialReportFilter = 'all' | 'paid' | 'upcoming' | 'completedUnpaid';
 
@@ -88,6 +92,10 @@ export function Financeiro() {
   const [year, setYear] = useState(today.getFullYear());
   const [summary, setSummary] = useState<MonthlyFinancialSummary | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [selectedSession, setSelectedSession] = useState<PatientSession | null>(null);
+  const [editingSession, setEditingSession] = useState<PatientSession | null>(null);
+  const [loadingSessionId, setLoadingSessionId] = useState('');
+  const [deletingSession, setDeletingSession] = useState(false);
   const [reportFilter, setReportFilter] = useState<FinancialReportFilter>('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -98,21 +106,21 @@ export function Financeiro() {
     return Array.from({ length: 9 }, (_, index) => currentYear - 4 + index);
   }, [today]);
 
-  useEffect(() => {
-    const loadSummary = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        setSummary(await getMonthlyFinancialSummary(year, month));
-      } catch (err: any) {
-        setError(err?.message || 'Erro ao carregar financeiro.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSummary();
+  const loadSummary = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setSummary(await getMonthlyFinancialSummary(year, month));
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao carregar financeiro.');
+    } finally {
+      setLoading(false);
+    }
   }, [month, year]);
+
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
 
   const patients = useMemo(() => {
     const searchTerm = normalizeSearch(search);
@@ -145,6 +153,39 @@ export function Financeiro() {
       setSelectedPatientId('');
     }
   }, [patients, selectedPatientId]);
+
+  const handleOpenSessionDetails = async (sessionId: string) => {
+    setLoadingSessionId(sessionId);
+    setError('');
+    try {
+      setSelectedSession(await getSession(sessionId));
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao carregar detalhes da sessao.');
+    } finally {
+      setLoadingSessionId('');
+    }
+  };
+
+  const handleSessionSaved = async (session: PatientSession) => {
+    setSelectedSession(session);
+    setEditingSession(null);
+    await loadSummary();
+  };
+
+  const handleDeleteSession = async (scope: DeleteSessionScope = 'single') => {
+    if (!selectedSession) return;
+
+    setDeletingSession(true);
+    try {
+      await deleteSession(selectedSession.id, Boolean(selectedSession.googleEventId), scope);
+      setSelectedSession(null);
+      await loadSummary();
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao excluir sessao.');
+    } finally {
+      setDeletingSession(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-full text-left">
@@ -220,7 +261,7 @@ export function Financeiro() {
           </p>
         ) : patients.length === 0 ? (
           <p className="mt-4 rounded-md border border-[#D79A69] p-4 text-sm text-[#55422f]">
-            Nenhuma sessao encontrada para os filtros selecionados.
+            Nenhuma sessão encontrada para os filtros selecionados.
           </p>
         ) : (
           <div className="mt-4 space-y-3">
@@ -245,7 +286,7 @@ export function Financeiro() {
                     {patient.patientName}
                   </button>
                   <p className="text-xs text-[#8A6A4F]">
-                    {patient.sessions} {patient.sessions === 1 ? 'sessao' : 'sessoes'}
+                    {patient.sessions} {patient.sessions === 1 ? 'sessão' : 'sessões'}
                   </p>
                 </div>
                 <p className="text-right font-semibold text-[#111111]">{formatCurrency(patient.received)}</p>
@@ -322,18 +363,24 @@ export function Financeiro() {
             <div className="mt-4 space-y-2">
               <div className="grid grid-cols-[4.5rem_1fr_minmax(4.5rem,auto)_minmax(4.5rem,auto)] gap-2 text-xs font-bold text-[#6A3710]">
                 <span>Data</span>
-                <span>Sessao</span>
+                <span>Sessão</span>
                 <span className="text-right">Feito</span>
                 <span className="text-right">Esperado</span>
               </div>
               {selectedPatient.sessionDetails.map((session) => (
-                <div
+                <button
                   key={session.id}
-                  className="grid grid-cols-[4.5rem_1fr_minmax(4.5rem,auto)_minmax(4.5rem,auto)] gap-2 rounded-sm bg-[#FFF8ED] px-2 py-2 text-xs text-[#111111]"
+                  type="button"
+                  onClick={() => handleOpenSessionDetails(session.id)}
+                  disabled={loadingSessionId === session.id}
+                  className="grid w-full grid-cols-[4.5rem_1fr_minmax(4.5rem,auto)_minmax(4.5rem,auto)] gap-2 rounded-sm bg-[#FFF8ED] px-2 py-2 text-left text-xs text-[#111111] transition hover:bg-[#F5E0C6] disabled:cursor-wait disabled:opacity-70"
+                  aria-label={`Ver detalhes da sessao ${session.title || formatDate(session.startsAt)}`}
                 >
                   <span>{formatDate(session.startsAt)}</span>
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{session.title || 'Sessao'}</p>
+                    <p className="truncate font-semibold">
+                      {loadingSessionId === session.id ? 'Carregando...' : session.title || 'Sessão'}
+                    </p>
                     <p className="text-[#8A6A4F]">
                       {formatPaymentStatus(session.paymentStatus)}
                       {session.paymentStatus === 'paid' ? ` - ${formatPaymentMethod(session.paymentMethod)}` : ''}
@@ -343,12 +390,35 @@ export function Financeiro() {
                     {session.paymentStatus === 'paid' ? formatCurrency(session.receivedAmount) : '-'}
                   </span>
                   <span className="text-right font-semibold">{formatCurrency(session.expectedAmount)}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         ) : null}
       </Dialog>
+
+      <SessionDetailsDialog
+        visible={Boolean(selectedSession)}
+        session={selectedSession}
+        deleting={deletingSession}
+        onHide={() => setSelectedSession(null)}
+        onEdit={() => {
+          if (!selectedSession) return;
+          setEditingSession(selectedSession);
+          setSelectedSession(null);
+        }}
+        onDelete={handleDeleteSession}
+        onSaved={handleSessionSaved}
+      />
+
+      {editingSession ? (
+        <SessionFormDialog
+          visible={Boolean(editingSession)}
+          session={editingSession}
+          onHide={() => setEditingSession(null)}
+          onSaved={handleSessionSaved}
+        />
+      ) : null}
     </div>
   );
 }

@@ -93,7 +93,7 @@ export const Agenda = () => {
           <div>
             <h2 className="text-left text-3xl font-semibold text-[#502815]">Agenda</h2>
             <p className="mt-2 text-left text-[18px] text-[#502815]">
-              Clique em um dia para ver os horarios de meia em meia hora.
+              Clique em um dia para ver os horários de meia em meia hora.
             </p>
           </div>
           {loading ? <p className="text-sm text-[#6A3710]">Carregando...</p> : null}

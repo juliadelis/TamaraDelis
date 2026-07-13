@@ -130,7 +130,7 @@ export const Paciente = () => {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="h-7 w-full border rounded-sm border-[#8B5A3C] bg-white pl-7 pr-3 text-xs text-[#111111] outline-none focus:border-[#6A3710] sm:min-w-[360px]"
+                className="h-7 w-full border rounded-sm border-[#8B5A3C] bg-white pl-7 pr-3 text-xs text-[#111111] outline-none focus:border-[#6A3710] sm:min-w-90"
                 placeholder="Digitar..."
               />
             </label>
