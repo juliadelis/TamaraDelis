@@ -144,7 +144,7 @@ function buildProntuarioSections(record: PatientRecord): DetailSection[] {
         { label: 'Data da sessão', value: formatDate(record.sessionDate) },
         { label: 'Tema da sessão', value: record.sessionTheme || emptyValue },
         { label: 'Motivos e pontos importantes', value: record.sessionMotives || emptyValue },
-        { label: 'Título da sessão', value: record.sessionTitle || emptyValue },
+        // { label: 'Título da sessão', value: record.sessionTitle || emptyValue },
       ],
     },
     {

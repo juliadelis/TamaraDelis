@@ -1300,7 +1300,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
             />
           </label>
 
-          <label className="block space-y-2">
+          {/* <label className="block space-y-2">
             <span className="text-sm font-medium text-[#6A3710]">Título da Sessão</span>
             <input
               name="sessionTitle"
@@ -1309,7 +1309,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               className="w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Título da sessão"
             />
-          </label>
+          </label> */}
         </div>
       </div>
 
