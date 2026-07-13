@@ -98,7 +98,16 @@ export const DayAgenda = ({
   });
 
   return (
-    <section className=" px-3 pb-7 pt-4 text-left sm:px-5">
+    <section className="pb-7 pt-4 text-left ">
+     <button
+        type="button"
+        onClick={() => onRegisterSession()}
+        className="mb-7 inline-flex items-center gap-2 rounded-md bg-[#6A3710] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#502815]"
+      >
+        <GoPlusCircle size={16} />
+        Registrar sessão
+      </button>
+     
       <div className="mb-6 flex items-center justify-between gap-4">
         <button
           type="button"
@@ -109,9 +118,9 @@ export const DayAgenda = ({
           <FiArrowLeft size={24} />
         </button>
 
-        <h1 className="min-w-0 flex-1 truncate text-xl font-bold text-[#3A1C0B] sm:text-2xl">
+        <h2 className="min-w-0 flex-1 truncate text-xl font-bold text-[#3A1C0B] sm:text-2xl">
           {formatHeaderDate(selectedDate)}
-        </h1>
+        </h2>
 
         <button
           type="button"
@@ -121,6 +130,8 @@ export const DayAgenda = ({
         >
           <FiArrowRight size={24} />
         </button>
+
+        
       </div>
 
       <div className="relative">
@@ -183,14 +194,7 @@ export const DayAgenda = ({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => onRegisterSession()}
-        className="mt-7 inline-flex items-center gap-2 rounded-md bg-[#6A3710] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#502815]"
-      >
-        <GoPlusCircle size={16} />
-        Registrar sessão
-      </button>
+      
     </section>
   );
 };

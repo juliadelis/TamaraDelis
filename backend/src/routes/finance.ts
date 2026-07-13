@@ -19,6 +19,7 @@ type SessionFinanceRow = {
   status: string | null;
   session_price: number | null;
   payment_status: string | null;
+  payment_method: 'pix' | 'cash' | null;
   paid_at: string | null;
   paid_amount: number | null;
   patients?: {
@@ -30,11 +31,19 @@ type MonthlySessionFinanceRow = {
   id: string;
   patient_id: string;
   starts_at: string;
+  title: string | null;
   status: string | null;
   session_price: number | null;
+  payment_status: string | null;
+  payment_method: 'pix' | 'cash' | null;
   paid_amount: number | null;
   patients?: {
     full_name: string | null;
+    email: string | null;
+    phone: string | null;
+    main_complaint: string | null;
+    session_price: number | null;
+    monthly_sessions: string | null;
   } | null;
 };
 
@@ -56,9 +65,10 @@ router.get('/monthly', async (req, res) => {
 
   const { data, error } = await supabase
     .from('patient_sessions')
-    .select('id, patient_id, starts_at, status, session_price, paid_amount, patients(full_name)')
+    .select(
+      'id, patient_id, starts_at, title, status, session_price, payment_status, payment_method, paid_amount, patients(full_name, email, phone, main_complaint, session_price, monthly_sessions)'
+    )
     .eq('user_id', userId)
-    .eq('status', 'completed')
     .is('deleted_at', null)
     .gte('starts_at', from)
     .lt('starts_at', to)
@@ -68,19 +78,73 @@ router.get('/monthly', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  const patients = new Map<string, { patientId: string; patientName: string; received: number; sessions: number }>();
+  const patients = new Map<
+    string,
+    {
+      patientId: string;
+      patientName: string;
+      patientEmail: string;
+      patientPhone: string;
+      mainComplaint: string;
+      currentSessionPrice: number | null;
+      monthlySessions: string;
+      received: number;
+      expected: number;
+      sessions: number;
+      sessionDetails: Array<{
+        id: string;
+        title: string;
+        startsAt: string;
+        status: string;
+        sessionPrice: number | null;
+        expectedAmount: number;
+        receivedAmount: number;
+        paymentStatus: string;
+        paymentMethod: 'pix' | 'cash' | '';
+      }>;
+    }
+  >();
 
   ((data || []) as unknown as MonthlySessionFinanceRow[]).forEach((session) => {
+    if (session.status === 'cancelled' || session.status === 'rescheduled') {
+      return;
+    }
+
     const patientId = session.patient_id || 'sem-paciente';
     const current = patients.get(patientId) || {
       patientId,
       patientName: session.patients?.full_name || 'Paciente sem nome',
+      patientEmail: session.patients?.email || '',
+      patientPhone: session.patients?.phone || '',
+      mainComplaint: session.patients?.main_complaint || '',
+      currentSessionPrice: session.patients?.session_price ?? null,
+      monthlySessions: session.patients?.monthly_sessions || '',
       received: 0,
+      expected: 0,
       sessions: 0,
+      sessionDetails: [],
     };
 
-    current.received += Number(session.paid_amount ?? session.session_price ?? 0);
+    const expectedAmount = Number(session.session_price ?? 0);
+    const receivedAmount =
+      session.status === 'completed' && session.payment_status === 'paid'
+        ? Number(session.paid_amount ?? session.session_price ?? 0)
+        : 0;
+
+    current.expected += expectedAmount;
+    current.received += receivedAmount;
     current.sessions += 1;
+    current.sessionDetails.push({
+      id: session.id,
+      title: session.title || '',
+      startsAt: session.starts_at,
+      status: session.status || 'scheduled',
+      sessionPrice: session.session_price,
+      expectedAmount,
+      receivedAmount,
+      paymentStatus: session.payment_status || 'pending',
+      paymentMethod: session.payment_method || '',
+    });
     patients.set(patientId, current);
   });
 
@@ -93,6 +157,7 @@ router.get('/monthly', async (req, res) => {
     month,
     patients: patientTotals,
     totalReceived: patientTotals.reduce((total, patient) => total + patient.received, 0),
+    totalExpected: patientTotals.reduce((total, patient) => total + patient.expected, 0),
     totalSessions: patientTotals.reduce((total, patient) => total + patient.sessions, 0),
   });
 });
@@ -111,7 +176,7 @@ router.get('/patients/:patientId', async (req, res) => {
         .order('starts_at', { ascending: false }),
       supabase
         .from('patient_sessions')
-        .select('id, starts_at, title, status, session_price, payment_status, paid_at, paid_amount')
+        .select('id, starts_at, title, status, session_price, payment_status, payment_method, paid_at, paid_amount')
         .eq('user_id', userId)
         .eq('patient_id', patientId)
         .is('deleted_at', null)
@@ -141,17 +206,16 @@ router.get('/patients/:patientId', async (req, res) => {
       createdAt: item.created_at,
     })),
     sessions: ((sessions || []) as SessionFinanceRow[]).map((item) => {
-      const isCompleted = item.status === 'completed';
-
       return {
         id: item.id,
         title: item.title || '',
         startsAt: item.starts_at,
         status: item.status || 'scheduled',
         sessionPrice: item.session_price,
-        paymentStatus: isCompleted ? 'paid' : item.payment_status || 'pending',
+        paymentStatus: item.payment_status || 'pending',
+        paymentMethod: item.payment_method || '',
         paidAt: item.paid_at || '',
-        paidAmount: isCompleted ? item.paid_amount ?? item.session_price : item.paid_amount,
+        paidAmount: item.payment_status === 'paid' ? item.paid_amount ?? item.session_price : item.paid_amount,
       };
     }),
   });

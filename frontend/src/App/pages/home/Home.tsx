@@ -4,7 +4,7 @@ import { DailySchedule } from './components/DailySchedule';
 import { SessionDetailsDialog } from '../agenda/components/SessionDetailsDialog';
 import { SessionFormDialog } from '../paciente/components/SessionFormDialog';
 import { getPatientRecord } from '../../../shared/services/patient';
-import { deleteSession, getSessions } from '../../../shared/services/session';
+import { deleteSession, getSessions, type DeleteSessionScope } from '../../../shared/services/session';
 import type { Patient, PatientRecord } from '../../../shared/models/patient.model';
 import type { PatientSession, SessionStatus } from '../../../shared/models/session.model';
 
@@ -164,13 +164,13 @@ export const Home = () => {
     setSelectedSession(sessionDateKey === selectedDateKey ? session : null);
   };
 
-  const handleDeleteSession = async () => {
+  const handleDeleteSession = async (scope: DeleteSessionScope = 'single') => {
     if (!selectedSession) return;
 
     setDeleting(true);
     try {
       const deletedSessionId = selectedSession.id;
-      await deleteSession(deletedSessionId, Boolean(selectedSession.googleEventId));
+      await deleteSession(deletedSessionId, Boolean(selectedSession.googleEventId), scope);
       setDetailsInitialStatus(null);
       setSelectedSession(null);
       setDaySessions((current) => current.filter((item) => item.id !== deletedSessionId));

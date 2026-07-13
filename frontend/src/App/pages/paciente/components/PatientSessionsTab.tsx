@@ -6,7 +6,8 @@ import {
   SESSION_STATUS_LABEL,
   type PatientSession,
 } from '../../../../shared/models/session.model';
-import { getSessions } from '../../../../shared/services/session';
+import { deleteSession, getSessions, type DeleteSessionScope } from '../../../../shared/services/session';
+import { SessionDetailsDialog } from '../../agenda/components/SessionDetailsDialog';
 import { SessionFormDialog } from './SessionFormDialog';
 
 type PatientSessionsTabProps = {
@@ -38,6 +39,9 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
   const [sessions, setSessions] = useState<PatientSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<PatientSession | null>(null);
+  const [editingSession, setEditingSession] = useState<PatientSession | null>(null);
+  const [deletingSession, setDeletingSession] = useState(false);
 
   const loadSessions = async () => {
     setLoading(true);
@@ -63,6 +67,8 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
 
   const handleSaved = (session: PatientSession) => {
     setDialogVisible(false);
+    setEditingSession(null);
+    setSelectedSession(session);
     setSessions((current) => {
       const exists = current.some((item) => item.id === session.id);
       const next = exists
@@ -71,6 +77,32 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
 
       return next.sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
     });
+  };
+
+  const handleDeleteSession = async (scope: DeleteSessionScope = 'single') => {
+    if (!selectedSession) return;
+
+    setDeletingSession(true);
+    try {
+      const deletedSessionId = selectedSession.id;
+      await deleteSession(deletedSessionId, Boolean(selectedSession.googleEventId), scope);
+      setSelectedSession(null);
+      if (scope === 'future' && selectedSession.recurrenceGroupId) {
+        setSessions((current) =>
+          current.filter(
+            (item) =>
+              item.recurrenceGroupId !== selectedSession.recurrenceGroupId ||
+              new Date(item.startsAt).getTime() < new Date(selectedSession.startsAt).getTime()
+          )
+        );
+      } else {
+        setSessions((current) => current.filter((item) => item.id !== deletedSessionId));
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeletingSession(false);
+    }
   };
 
   return (
@@ -118,6 +150,7 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
             <button
               key={session.id}
               type="button"
+              onClick={() => setSelectedSession(session)}
               className={`grid w-full grid-cols-[104px_1fr_auto] items-center gap-3 border-l-4 px-4 py-3 text-left text-sm text-[#111111] ${SESSION_STATUS_CLASS[session.status]}`}
             >
               <span>{formatDate(session.startsAt)}</span>
@@ -135,6 +168,30 @@ export function PatientSessionsTab({ patient }: PatientSessionsTabProps) {
           visible={dialogVisible}
           patient={patient}
           onHide={() => setDialogVisible(false)}
+          onSaved={handleSaved}
+        />
+      ) : null}
+
+      <SessionDetailsDialog
+        visible={Boolean(selectedSession)}
+        session={selectedSession}
+        deleting={deletingSession}
+        onHide={() => setSelectedSession(null)}
+        onEdit={() => {
+          if (!selectedSession) return;
+          setEditingSession(selectedSession);
+          setSelectedSession(null);
+        }}
+        onDelete={handleDeleteSession}
+        onSaved={handleSaved}
+      />
+
+      {editingSession ? (
+        <SessionFormDialog
+          visible={Boolean(editingSession)}
+          patient={patient}
+          session={editingSession}
+          onHide={() => setEditingSession(null)}
           onSaved={handleSaved}
         />
       ) : null}

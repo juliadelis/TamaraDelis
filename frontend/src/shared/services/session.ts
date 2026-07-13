@@ -77,8 +77,14 @@ export async function saveSession(payload: PatientSessionPayload, id?: string) {
   return response.json() as Promise<PatientSession>;
 }
 
-export async function deleteSession(id: string, syncGoogle = false) {
-  const response = await fetchWithAuthRetry(`${API_URL}/api/sessions/${id}?syncGoogle=${syncGoogle}`, {
+export type DeleteSessionScope = 'single' | 'future';
+
+export async function deleteSession(id: string, syncGoogle = false, scope: DeleteSessionScope = 'single') {
+  const params = new URLSearchParams({
+    syncGoogle: String(syncGoogle),
+    scope,
+  });
+  const response = await fetchWithAuthRetry(`${API_URL}/api/sessions/${id}?${params.toString()}`, {
     method: 'DELETE',
   });
 

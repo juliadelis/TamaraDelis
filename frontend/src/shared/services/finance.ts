@@ -55,19 +55,51 @@ export async function getMonthlyFinancialSummary(year: number, month: number) {
   if (response.status === 404) {
     const from = new Date(year, month - 1, 1, 0, 0, 0, 0).toISOString();
     const to = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
-    const sessions = await getSessions({ from, to, status: 'completed' });
-    const patients = new Map<string, { patientId: string; patientName: string; received: number; sessions: number }>();
+    const sessions = await getSessions({ from, to });
+    const patients = new Map<
+      string,
+      MonthlyFinancialSummary['patients'][number]
+    >();
 
     sessions.forEach((session) => {
+      if (session.status === 'cancelled' || session.status === 'rescheduled') {
+        return;
+      }
+
       const current = patients.get(session.patientId) || {
         patientId: session.patientId,
         patientName: session.patientName || 'Paciente sem nome',
+        patientEmail: session.patientEmail || '',
+        patientPhone: '',
+        mainComplaint: '',
+        currentSessionPrice: null,
+        monthlySessions: '',
         received: 0,
+        expected: 0,
         sessions: 0,
+        sessionDetails: [],
       };
 
-      current.received += session.paidAmount ?? session.sessionPrice ?? 0;
+      const expectedAmount = session.sessionPrice ?? 0;
+      const receivedAmount =
+        session.status === 'completed' && session.paymentStatus === 'paid'
+          ? session.paidAmount ?? session.sessionPrice ?? 0
+          : 0;
+
+      current.expected += expectedAmount;
+      current.received += receivedAmount;
       current.sessions += 1;
+      current.sessionDetails.push({
+        id: session.id,
+        title: session.title,
+        startsAt: session.startsAt,
+        status: session.status,
+        sessionPrice: session.sessionPrice,
+        expectedAmount,
+        receivedAmount,
+        paymentStatus: session.paymentStatus,
+        paymentMethod: session.paymentMethod,
+      });
       patients.set(session.patientId, current);
     });
 
@@ -80,6 +112,7 @@ export async function getMonthlyFinancialSummary(year: number, month: number) {
       month,
       patients: patientTotals,
       totalReceived: patientTotals.reduce((total, patient) => total + patient.received, 0),
+      totalExpected: patientTotals.reduce((total, patient) => total + patient.expected, 0),
       totalSessions: patientTotals.reduce((total, patient) => total + patient.sessions, 0),
     };
   }

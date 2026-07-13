@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import type { PatientRecord } from '../../../../shared/models/patient.model';
-import type { PatientSession, PatientSessionPayload, SessionStatus } from '../../../../shared/models/session.model';
+import type {
+  PatientSession,
+  PatientSessionPayload,
+  SessionRecurrenceType,
+  SessionStatus,
+} from '../../../../shared/models/session.model';
 import { getGoogleCalendarStatus, getGoogleLoginUrl } from '../../../../shared/services/auth';
 import { saveSession } from '../../../../shared/services/session';
 
@@ -26,6 +31,14 @@ const statusOptions: { value: SessionStatus; label: string }[] = [
   { value: 'cancelled', label: 'Cancelada' },
 ];
 
+const recurrenceOptions: { value: SessionRecurrenceType; label: string }[] = [
+  { value: 'none', label: 'Nenhum' },
+  { value: 'monthly', label: 'Mensal' },
+  { value: 'biweekly', label: 'Quinzenal' },
+  { value: 'weekly', label: '1 vez por semana' },
+  { value: 'twiceWeekly', label: '2 vezes por semana' },
+];
+
 function toLocalInputValue(value = '') {
   if (!value) return '';
   const date = new Date(value);
@@ -37,6 +50,87 @@ function toLocalInputValue(value = '') {
 
 function fromLocalInputValue(value: string) {
   return value ? new Date(value).toISOString() : '';
+}
+
+function dateInputValue(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addMonthsKeepingDay(value: Date, amount: number) {
+  const next = new Date(value);
+  const day = next.getDate();
+  next.setDate(1);
+  next.setMonth(next.getMonth() + amount);
+  const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+  next.setDate(Math.min(day, lastDay));
+  return next;
+}
+
+function nextOccurrenceDate(current: Date, recurrence: SessionRecurrenceType, index: number) {
+  const next = new Date(current);
+
+  if (recurrence === 'monthly') {
+    return addMonthsKeepingDay(next, 1);
+  }
+
+  if (recurrence === 'biweekly') {
+    next.setDate(next.getDate() + 14);
+    return next;
+  }
+
+  if (recurrence === 'weekly') {
+    next.setDate(next.getDate() + 7);
+    return next;
+  }
+
+  if (recurrence === 'twiceWeekly') {
+    next.setDate(next.getDate() + (index % 2 === 0 ? 3 : 4));
+    return next;
+  }
+
+  return next;
+}
+
+function buildOccurrenceDates(start: string, end: string, recurrence: SessionRecurrenceType, recurrenceEndDate: string) {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const duration = endDate.getTime() - startDate.getTime();
+
+  if (recurrence === 'none') {
+    return [{ startsAt: startDate, endsAt: endDate }];
+  }
+
+  const limit = new Date(`${recurrenceEndDate}T23:59:59`);
+  const occurrences = [{ startsAt: startDate, endsAt: endDate }];
+  let currentStart = startDate;
+  let index = 0;
+
+  while (true) {
+    const nextStart = nextOccurrenceDate(currentStart, recurrence, index);
+    if (nextStart.getTime() > limit.getTime()) {
+      break;
+    }
+
+    occurrences.push({
+      startsAt: nextStart,
+      endsAt: new Date(nextStart.getTime() + duration),
+    });
+    currentStart = nextStart;
+    index += 1;
+  }
+
+  return occurrences;
+}
+
+function generateRecurrenceGroupId() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `recurrence-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export function SessionFormDialog({
@@ -87,6 +181,8 @@ export function SessionFormDialog({
   const [sessionNumber, setSessionNumber] = useState(session?.sessionNumber?.toString() || '');
   const [startsAt, setStartsAt] = useState(toLocalInputValue(session?.startsAt) || defaultStart);
   const [endsAt, setEndsAt] = useState(toLocalInputValue(session?.endsAt) || defaultEnd);
+  const [recurrence, setRecurrence] = useState<SessionRecurrenceType>(session?.recurrenceType || 'none');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState(() => dateInputValue(new Date(defaultStart)));
   const [status, setStatus] = useState<SessionStatus>(session?.status || 'scheduled');
   const [cid, setCid] = useState(session?.cid || '');
   const [sessionTheme, setSessionTheme] = useState(session?.sessionTheme || '');
@@ -111,6 +207,15 @@ export function SessionFormDialog({
       setTitle(`Sessão - ${selectedPatient.fullName}`);
     }
   }, [blankInitialTitle, selectedPatient, session, title]);
+
+  useEffect(() => {
+    if (session || !startsAt) return;
+
+    const startDate = new Date(startsAt);
+    if (!Number.isNaN(startDate.getTime())) {
+      setRecurrenceEndDate((current) => current || dateInputValue(startDate));
+    }
+  }, [session, startsAt]);
 
   useEffect(() => {
     const checkGoogle = async () => {
@@ -160,6 +265,25 @@ export function SessionFormDialog({
       return;
     }
 
+    if (recurrence !== 'none' && !recurrenceEndDate) {
+      setError('Informe a data final da periodicidade.');
+      return;
+    }
+
+    if (recurrence !== 'none') {
+      const startDate = new Date(startsAt);
+      const limitDate = new Date(`${recurrenceEndDate}T23:59:59`);
+
+      if (Number.isNaN(limitDate.getTime()) || limitDate.getTime() < startDate.getTime()) {
+        setError('A data final da periodicidade deve ser igual ou posterior ao inicio da sessao.');
+        return;
+      }
+    }
+
+    const shouldCreateFutureSessions = recurrence !== 'none' && (!session || !session.recurrenceGroupId);
+    const recurrenceGroupId =
+      recurrence === 'none' ? undefined : session?.recurrenceGroupId || generateRecurrenceGroupId();
+
     const payload: PatientSessionPayload = {
       patientId: selectedPatient.id,
       title,
@@ -176,14 +300,40 @@ export function SessionFormDialog({
       recurrentThemes: session?.recurrentThemes ?? '',
       rescheduledFromStartsAt: session?.rescheduledFromStartsAt ?? '',
       rescheduledFromEndsAt: session?.rescheduledFromEndsAt ?? '',
+      recurrenceGroupId,
+      recurrenceType: recurrence,
       notes,
       syncGoogle,
     };
 
     setSaving(true);
     try {
-      const saved = await saveSession(payload, session?.id);
-      onSaved(saved);
+      if (!shouldCreateFutureSessions) {
+        const saved = await saveSession(payload, session?.id);
+        onSaved(saved);
+        return;
+      }
+
+      const occurrences = buildOccurrenceDates(startsAt, endsAt, recurrence, recurrenceEndDate);
+      const occurrencesToCreate = session ? occurrences.slice(1) : occurrences;
+
+      if (session) {
+        const saved = await saveSession(payload, session.id);
+        onSaved(saved);
+      }
+
+      for (const [index, occurrence] of occurrencesToCreate.entries()) {
+        const sessionNumberOffset = session ? index + 1 : index;
+        const saved = await saveSession({
+          ...payload,
+          sessionNumber: payload.sessionNumber === null ? null : Number(payload.sessionNumber) + sessionNumberOffset,
+          recurrenceGroupId,
+          recurrenceType: recurrence,
+          startsAt: occurrence.startsAt.toISOString(),
+          endsAt: occurrence.endsAt.toISOString(),
+        });
+        onSaved(saved);
+      }
     } catch (err: any) {
       setError(err?.message || 'Erro ao salvar sessão.');
     } finally {
@@ -303,6 +453,33 @@ export function SessionFormDialog({
           />
         </label>
 
+        <label className="text-sm font-medium text-[#502815]">
+          Periodicidade
+          <select
+            value={recurrence}
+            onChange={(event) => setRecurrence(event.target.value as SessionRecurrenceType)}
+            className="mt-1 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+          >
+            {recurrenceOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {recurrence !== 'none' ? (
+          <label className="text-sm font-medium text-[#502815]">
+            Data final
+            <input
+              type="date"
+              value={recurrenceEndDate}
+              onChange={(event) => setRecurrenceEndDate(event.target.value)}
+              className="mt-1 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+            />
+          </label>
+        ) : null}
+
         <label className="text-sm font-medium text-[#502815] sm:col-span-2">
           Tema
           <input
@@ -317,7 +494,7 @@ export function SessionFormDialog({
           <textarea
             value={sessionMotives}
             onChange={(event) => setSessionMotives(event.target.value)}
-            className="mt-1 min-h-24 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+            className="mt-1 min-h-36 w-full resize-y rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
           />
         </label>
 
@@ -326,7 +503,7 @@ export function SessionFormDialog({
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="mt-1 min-h-20 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+            className="mt-1 min-h-36 w-full resize-y rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
           />
         </label>
 

@@ -1,4 +1,7 @@
 export type SessionStatus = 'scheduled' | 'completed' | 'cancelled' | 'missed' | 'rescheduled';
+export type PaymentStatus = 'pending' | 'paid' | 'cancelled';
+export type PaymentMethod = 'pix' | 'cash';
+export type SessionRecurrenceType = 'none' | 'monthly' | 'biweekly' | 'weekly' | 'twiceWeekly';
 
 export interface PatientSession {
   id: string;
@@ -32,9 +35,12 @@ export interface PatientSession {
   googleSyncStatus: string;
   googleLastSyncedAt: string;
   sessionPrice: number | null;
-  paymentStatus: 'pending' | 'paid' | 'cancelled';
+  paymentStatus: PaymentStatus;
+  paymentMethod: PaymentMethod | '';
   paidAt: string;
   paidAmount: number | null;
+  recurrenceGroupId: string;
+  recurrenceType: SessionRecurrenceType;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +67,10 @@ export type PatientSessionPayload = {
   recurrentThemes?: string;
   rescheduledFromStartsAt?: string;
   rescheduledFromEndsAt?: string;
+  paymentStatus?: PaymentStatus;
+  paymentMethod?: PaymentMethod | '';
+  recurrenceGroupId?: string;
+  recurrenceType?: SessionRecurrenceType;
   syncGoogle?: boolean;
 };
 

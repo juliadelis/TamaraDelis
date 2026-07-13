@@ -330,7 +330,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="sessionMotives"
               value={formValues.sessionMotives || ''}
               onChange={handleChange}
-              className="min-h-32 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva os motivos e pontos importantes"
             />
           </label>
@@ -551,7 +551,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="mainComplaint"
               value={formValues.mainComplaint || ''}
               onChange={handleChange}
-              className="min-h-20 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva a queixa principal"
             />
           </label>
@@ -561,7 +561,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="generalNotes"
               value={formValues.generalNotes || ''}
               onChange={handleChange}
-              className="min-h-20 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Notas gerais sobre o paciente"
             />
           </label>
@@ -843,7 +843,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
                   },
                 }));
               }}
-              className="min-h-24 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva os pontos de ansiedade"
             />
           </label>
@@ -1197,7 +1197,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="significants"
               value={formValues.significants || ''}
               onChange={handleChange}
-              className="min-h-24 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva os significantes"
             />
           </label>
@@ -1208,7 +1208,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="fantasyStructure"
               value={formValues.fantasyStructure || ''}
               onChange={handleChange}
-              className="min-h-24 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva a estrutura da fantasia"
             />
           </label>
@@ -1219,7 +1219,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="transference"
               value={formValues.transference || ''}
               onChange={handleChange}
-              className="min-h-24 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva a transferência"
             />
           </label>
@@ -1230,7 +1230,7 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
               name="countertransference"
               value={formValues.countertransference || ''}
               onChange={handleChange}
-              className="min-h-24 w-full rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
+              className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
               placeholder="Descreva o sentimento contratransferencial"
             />
           </label>

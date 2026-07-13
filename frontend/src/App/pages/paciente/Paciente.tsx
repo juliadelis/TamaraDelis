@@ -138,7 +138,9 @@ export const Paciente = () => {
 
         </div>
 
-        <div className="mb-9 flex flex-wrap gap-2">
+        
+
+        <div className="mb-8 flex flex-wrap gap-2">
           {availableTags.map((tag) => {
             const selected = activeTags.includes(tag);
 
@@ -159,6 +161,15 @@ export const Paciente = () => {
           })}
         </div>
 
+
+<div className="mb-8">
+          <Link
+            to="/pacientes/novo"
+            className="inline-flex min-h-8 items-center rounded-md bg-[#6A3710] px-4 text-xs font-bold text-white transition hover:bg-[#502815]"
+          >
+            Registrar paciente
+          </Link>
+        </div>
         <div className="space-y-5">
           {loading ? (
             <p className="text-xs text-[#55422f]">Carregando pacientes...</p>
@@ -193,14 +204,7 @@ export const Paciente = () => {
           )}
         </div>
 
-        <div className="mt-16">
-          <Link
-            to="/pacientes/novo"
-            className="inline-flex min-h-8 items-center rounded-md bg-[#6A3710] px-4 text-xs font-bold text-white transition hover:bg-[#502815]"
-          >
-            Registrar paciente
-          </Link>
-        </div>
+        
       </div>
     </div>
   );

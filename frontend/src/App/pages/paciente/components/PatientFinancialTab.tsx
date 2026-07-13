@@ -25,6 +25,12 @@ function formatDate(value = '') {
   return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('pt-BR');
 }
 
+function formatPaymentMethod(value = '') {
+  if (value === 'pix') return 'Pix';
+  if (value === 'cash') return 'Dinheiro';
+  return '-';
+}
+
 export function PatientFinancialTab({ patient }: PatientFinancialTabProps) {
   const [summary, setSummary] = useState<PatientFinancialSummary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -77,15 +83,16 @@ export function PatientFinancialTab({ patient }: PatientFinancialTabProps) {
           </p>
         ) : (
           <div className="overflow-hidden rounded-sm">
-            <div className="grid grid-cols-3 bg-white px-3 py-2 text-xs font-bold text-[#111111]">
+            <div className="grid grid-cols-4 bg-white px-3 py-2 text-xs font-bold text-[#111111]">
               <span>Data</span>
               <span>Valor</span>
               <span>Pago</span>
+              <span>Metodo</span>
             </div>
             {sessions.map((session, index) => (
               <div
                 key={session.id}
-                className={`grid grid-cols-3 px-3 py-2 text-xs text-[#111111] ${
+                className={`grid grid-cols-4 px-3 py-2 text-xs text-[#111111] ${
                   index % 2 === 0 ? 'bg-[#FFF8ED]' : 'bg-white'
                 }`}
               >
@@ -94,6 +101,7 @@ export function PatientFinancialTab({ patient }: PatientFinancialTabProps) {
                 <span className={session.paymentStatus === 'paid' ? 'font-semibold text-[#2BA64B]' : 'text-[#8A6A4F]'}>
                   {session.paymentStatus === 'paid' ? formatCurrency(session.paidAmount) : '-'}
                 </span>
+                <span>{session.paymentStatus === 'paid' ? formatPaymentMethod(session.paymentMethod) : '-'}</span>
               </div>
             ))}
           </div>

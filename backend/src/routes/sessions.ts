@@ -8,6 +8,9 @@ import {
 } from '../services/googleCalendarService';
 
 export type SessionStatus = 'scheduled' | 'completed' | 'cancelled' | 'missed' | 'rescheduled';
+type PaymentStatus = 'pending' | 'paid' | 'cancelled';
+type PaymentMethod = 'pix' | 'cash';
+type SessionRecurrenceType = 'none' | 'monthly' | 'biweekly' | 'weekly' | 'twiceWeekly';
 
 type SessionRow = {
   id: string;
@@ -39,9 +42,12 @@ type SessionRow = {
   google_sync_status: string | null;
   google_last_synced_at: string | null;
   session_price: number | null;
-  payment_status: 'pending' | 'paid' | 'cancelled' | null;
+  payment_status: PaymentStatus | null;
+  payment_method: PaymentMethod | null;
   paid_at: string | null;
   paid_amount: number | null;
+  recurrence_group_id: string | null;
+  recurrence_type: SessionRecurrenceType | null;
   created_at: string;
   updated_at: string | null;
   patients?: {
@@ -78,6 +84,23 @@ function stringArray(value: unknown) {
   return [];
 }
 
+function paymentStatus(value: unknown): PaymentStatus {
+  const normalized = text(value);
+  return normalized === 'paid' || normalized === 'cancelled' ? normalized : 'pending';
+}
+
+function paymentMethod(value: unknown): PaymentMethod | null {
+  const normalized = text(value);
+  return normalized === 'pix' || normalized === 'cash' ? normalized : null;
+}
+
+function recurrenceType(value: unknown): SessionRecurrenceType {
+  const normalized = text(value);
+  return normalized === 'monthly' || normalized === 'biweekly' || normalized === 'weekly' || normalized === 'twiceWeekly'
+    ? normalized
+    : 'none';
+}
+
 function rowToSession(row: SessionRow) {
   return {
     id: row.id,
@@ -112,14 +135,25 @@ function rowToSession(row: SessionRow) {
     googleLastSyncedAt: row.google_last_synced_at || '',
     sessionPrice: row.session_price,
     paymentStatus: row.payment_status || 'pending',
+    paymentMethod: row.payment_method || '',
     paidAt: row.paid_at || '',
     paidAmount: row.paid_amount,
+    recurrenceGroupId: row.recurrence_group_id || '',
+    recurrenceType: row.recurrence_type || 'none',
     createdAt: row.created_at,
     updatedAt: row.updated_at || '',
   };
 }
 
 function requestToRow(body: Record<string, unknown>, userId: string) {
+  const status = (text(body.status) || 'scheduled') as SessionStatus;
+  const requestedPaymentStatus =
+    body.paymentStatus === undefined || body.paymentStatus === null || body.paymentStatus === ''
+      ? status === 'completed'
+        ? 'paid'
+        : 'pending'
+      : paymentStatus(body.paymentStatus);
+
   return {
     user_id: userId,
     patient_id: text(body.patientId),
@@ -128,7 +162,7 @@ function requestToRow(body: Record<string, unknown>, userId: string) {
     starts_at: text(body.startsAt),
     ends_at: text(body.endsAt),
     timezone: text(body.timezone) || 'America/Sao_Paulo',
-    status: (text(body.status) || 'scheduled') as SessionStatus,
+    status,
     type: text(body.type) || null,
     location: text(body.location) || null,
     notes: text(body.notes) || null,
@@ -143,6 +177,10 @@ function requestToRow(body: Record<string, unknown>, userId: string) {
     recurrent_themes: text(body.recurrentThemes) || null,
     rescheduled_from_starts_at: text(body.rescheduledFromStartsAt) || null,
     rescheduled_from_ends_at: text(body.rescheduledFromEndsAt) || null,
+    payment_status: requestedPaymentStatus,
+    payment_method: paymentMethod(body.paymentMethod),
+    recurrence_group_id: text(body.recurrenceGroupId) || null,
+    recurrence_type: recurrenceType(body.recurrenceType),
     updated_at: new Date().toISOString(),
   };
 }
@@ -175,22 +213,32 @@ async function getEffectiveSessionPrice(patientId: string, startsAt: string) {
 
 async function applyPaymentAutomation(
   payload: ReturnType<typeof requestToRow>,
-  existing?: Pick<SessionRow, 'payment_status' | 'paid_at' | 'paid_amount' | 'session_price'> | null
+  existing?: Pick<SessionRow, 'payment_status' | 'payment_method' | 'paid_at' | 'paid_amount' | 'session_price'> | null
 ): Promise<ReturnType<typeof requestToRow> & {
   session_price: number | null;
-  payment_status: 'pending' | 'paid' | 'cancelled';
+  payment_status: PaymentStatus;
+  payment_method: PaymentMethod | null;
   paid_at: string | null;
   paid_amount: number | null;
 }> {
   const sessionPrice = existing?.session_price ?? (await getEffectiveSessionPrice(payload.patient_id, payload.starts_at));
 
   if (payload.status === 'completed') {
+    const selectedPaymentStatus = payload.payment_status === 'paid' ? 'paid' : 'pending';
+    const selectedPaymentMethod = selectedPaymentStatus === 'paid' ? payload.payment_method || existing?.payment_method || 'pix' : null;
+
     return {
       ...payload,
       session_price: sessionPrice,
-      payment_status: 'paid',
-      paid_at: existing?.payment_status === 'paid' && existing.paid_at ? existing.paid_at : new Date().toISOString(),
-      paid_amount: sessionPrice,
+      payment_status: selectedPaymentStatus,
+      payment_method: selectedPaymentMethod,
+      paid_at:
+        selectedPaymentStatus === 'paid'
+          ? existing?.payment_status === 'paid' && existing.paid_at
+            ? existing.paid_at
+            : new Date().toISOString()
+          : null,
+      paid_amount: selectedPaymentStatus === 'paid' ? sessionPrice : null,
     };
   }
 
@@ -198,6 +246,7 @@ async function applyPaymentAutomation(
     ...payload,
     session_price: sessionPrice,
     payment_status: payload.status === 'cancelled' ? 'cancelled' : 'pending',
+    payment_method: null,
     paid_at: null,
     paid_amount: null,
   };
@@ -322,7 +371,7 @@ router.put('/:id', async (req, res) => {
 
   const { data: existing, error: existingError } = await supabase
     .from('patient_sessions')
-    .select('payment_status, paid_at, paid_amount, session_price')
+    .select('payment_status, payment_method, paid_at, paid_amount, session_price')
     .eq('id', req.params.id)
     .eq('user_id', userId)
     .single();
@@ -365,9 +414,55 @@ router.delete('/:id', async (req, res) => {
     return res.status(fetchError.code === 'PGRST116' ? 404 : 500).json({ error: fetchError.message });
   }
 
+  const selected = data as SessionRow;
+  const deleteFuture = req.query.scope === 'future' && Boolean(selected.recurrence_group_id);
+  const deletedAt = new Date().toISOString();
+
+  if (deleteFuture) {
+    const { data: rowsToDelete, error: rowsError } = await supabase
+      .from('patient_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('recurrence_group_id', selected.recurrence_group_id)
+      .gte('starts_at', selected.starts_at)
+      .is('deleted_at', null);
+
+    if (rowsError) {
+      return res.status(500).json({ error: rowsError.message });
+    }
+
+    const { error } = await supabase
+      .from('patient_sessions')
+      .update({ deleted_at: deletedAt, updated_at: deletedAt })
+      .eq('user_id', userId)
+      .eq('recurrence_group_id', selected.recurrence_group_id)
+      .gte('starts_at', selected.starts_at)
+      .is('deleted_at', null);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (req.query.syncGoogle === 'true' || selected.google_event_id) {
+      await Promise.all(
+        ((rowsToDelete || []) as SessionRow[]).map(async (row) => {
+          if (!row.google_event_id) return;
+
+          try {
+            await deleteGoogleCalendarEvent(userId, row);
+          } catch (googleError) {
+            console.error('Falha ao excluir evento no Google Calendar:', googleError);
+          }
+        })
+      );
+    }
+
+    return res.status(204).send();
+  }
+
   const { error } = await supabase
     .from('patient_sessions')
-    .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .update({ deleted_at: deletedAt, updated_at: deletedAt })
     .eq('id', req.params.id)
     .eq('user_id', userId);
 
@@ -375,9 +470,9 @@ router.delete('/:id', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  if (req.query.syncGoogle === 'true' || data.google_event_id) {
+  if (req.query.syncGoogle === 'true' || selected.google_event_id) {
     try {
-      await deleteGoogleCalendarEvent(userId, data as SessionRow);
+      await deleteGoogleCalendarEvent(userId, selected);
     } catch (googleError) {
       console.error('Falha ao excluir evento no Google Calendar:', googleError);
     }

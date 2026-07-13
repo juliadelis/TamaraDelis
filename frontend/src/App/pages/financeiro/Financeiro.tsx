@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Dialog } from 'primereact/dialog';
+import { Link } from 'react-router-dom';
 import type { MonthlyFinancialSummary } from '../../../shared/models/finance.model';
 import { getMonthlyFinancialSummary } from '../../../shared/services/finance';
 
 const MONTHS = [
   'Janeiro',
   'Fevereiro',
-  'Março',
+  'Marco',
   'Abril',
   'Maio',
   'Junho',
@@ -26,11 +28,30 @@ function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
 
+function formatDate(value = '') {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('pt-BR');
+}
+
+function formatPaymentMethod(value = '') {
+  if (value === 'pix') return 'Pix';
+  if (value === 'cash') return 'Dinheiro';
+  return '-';
+}
+
+function formatPaymentStatus(value = '') {
+  if (value === 'paid') return 'Pago';
+  if (value === 'cancelled') return 'Cancelado';
+  return 'Esperado';
+}
+
 export function Financeiro() {
   const today = useMemo(() => new Date(), []);
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [year, setYear] = useState(today.getFullYear());
   const [summary, setSummary] = useState<MonthlyFinancialSummary | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,20 +78,28 @@ export function Financeiro() {
 
   const patients = summary?.patients || [];
   const totalReceived = summary?.totalReceived || 0;
+  const totalExpected = summary?.totalExpected || 0;
   const totalSessions = summary?.totalSessions || 0;
+  const selectedPatient = patients.find((patient) => patient.patientId === selectedPatientId) || null;
+
+  useEffect(() => {
+    if (selectedPatientId && !patients.some((patient) => patient.patientId === selectedPatientId)) {
+      setSelectedPatientId('');
+    }
+  }, [patients, selectedPatientId]);
 
   return (
     <div className="mx-auto max-w-full text-left">
-      <section className="pb-8 ">
+      <section className="pb-8">
         <h2 className="text-left text-3xl font-semibold text-[#502815]">Financeiro</h2>
 
         <div className="mt-5 flex flex-wrap gap-3">
           <label className="text-sm font-semibold text-[#502815]">
-            Mês
+            Mes
             <select
               value={month}
               onChange={(event) => setMonth(Number(event.target.value))}
-              className="mt-1 block rounded-md border border-[#D79A69]  px-3 py-2 text-sm font-semibold text-[#502815] outline-none"
+              className="mt-1 block rounded-md border border-[#D79A69] px-3 py-2 text-sm font-semibold text-[#502815] outline-none"
             >
               {MONTHS.map((name, index) => (
                 <option key={name} value={index + 1}>
@@ -108,35 +137,135 @@ export function Financeiro() {
           </p>
         ) : patients.length === 0 ? (
           <p className="mt-4 rounded-md border border-[#D79A69] p-4 text-sm text-[#55422f]">
-            Nenhuma sessão realizada neste mês.
+            Nenhuma sessao marcada neste mes.
           </p>
         ) : (
           <div className="mt-4 space-y-3">
+            <div className="grid grid-cols-[1fr_minmax(5.5rem,auto)_minmax(5.5rem,auto)] gap-3 border-b border-[#E8C6A8] pb-2 text-xs font-bold text-[#6A3710]">
+              <span>Paciente</span>
+              <span className="text-right">Recebido</span>
+              <span className="text-right">Esperado</span>
+            </div>
             {patients.map((patient) => (
-              <div key={patient.patientId} className="grid grid-cols-[1fr_auto] items-center gap-3 text-sm">
+              <div
+                key={patient.patientId}
+                className="grid grid-cols-[1fr_minmax(5.5rem,auto)_minmax(5.5rem,auto)] items-center gap-3 text-sm"
+              >
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-[#111111]">{patient.patientName}</p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPatientId(patient.patientId)}
+                    className={`block max-w-full truncate text-left font-medium underline-offset-2 hover:underline ${
+                      selectedPatientId === patient.patientId ? 'text-[#6A3710]' : 'text-[#111111]'
+                    }`}
+                  >
+                    {patient.patientName}
+                  </button>
                   <p className="text-xs text-[#8A6A4F]">
-                    {patient.sessions} {patient.sessions === 1 ? 'sessão' : 'sessões'}
+                    {patient.sessions} {patient.sessions === 1 ? 'sessao' : 'sessoes'}
                   </p>
                 </div>
-                <p className="font-semibold text-[#111111]">{formatCurrency(patient.received)}</p>
+                <p className="text-right font-semibold text-[#111111]">{formatCurrency(patient.received)}</p>
+                <p className="text-right font-semibold text-[#111111]">{formatCurrency(patient.expected)}</p>
               </div>
             ))}
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-2 gap-3">
+        <div className="mt-8 grid gap-3 sm:grid-cols-3">
           <div className="rounded-sm border border-[#C8793D] bg-[#FFF8ED] px-3 py-4">
             <p className="text-xs font-bold text-[#6A3710]">Recebido</p>
             <p className="mt-3 text-xl font-bold text-[#6A3710]">{formatCurrency(totalReceived)}</p>
           </div>
           <div className="rounded-sm border border-[#C8793D] bg-[#FFF8ED] px-3 py-4">
-            <p className="text-xs font-bold text-[#6A3710]">Sessões</p>
+            <p className="text-xs font-bold text-[#6A3710]">Esperado</p>
+            <p className="mt-3 text-xl font-bold text-[#6A3710]">{formatCurrency(totalExpected)}</p>
+          </div>
+          <div className="rounded-sm border border-[#C8793D] bg-[#FFF8ED] px-3 py-4">
+            <p className="text-xs font-bold text-[#6A3710]">Sessoes</p>
             <p className="mt-3 text-xl font-bold text-[#6A3710]">{totalSessions}</p>
           </div>
         </div>
       </section>
+
+      <Dialog
+        header={
+          selectedPatient ? (
+            <span>
+              Resumo financeiro -{' '}
+              <Link
+                to={`/pacientes/${selectedPatient.patientId}`}
+                onClick={() => setSelectedPatientId('')}
+                className="text-[#6A3710] underline underline-offset-2"
+              >
+                {selectedPatient.patientName}
+              </Link>
+            </span>
+          ) : (
+            'Resumo financeiro'
+          )
+        }
+        visible={Boolean(selectedPatient)}
+        onHide={() => setSelectedPatientId('')}
+        modal
+        draggable={false}
+        className="mx-4 w-full max-w-3xl"
+        contentClassName="max-h-[75vh] overflow-y-auto"
+      >
+        {selectedPatient ? (
+          <div className="text-left">
+            <div className="grid gap-3 border-b border-[#E8C6A8] pb-4 sm:grid-cols-[1fr_auto_auto] sm:items-start">
+              <div className="min-w-0">
+                <div className="mt-1 grid gap-1 text-xs text-[#55422f] sm:grid-cols-2">
+                  <span>{selectedPatient.patientEmail || 'Email nao informado'}</span>
+                  <span>{selectedPatient.patientPhone || 'Telefone nao informado'}</span>
+                  <span>Valor atual: {formatCurrency(selectedPatient.currentSessionPrice || 0)}</span>
+                  <span>Sessoes/mes: {selectedPatient.monthlySessions || '-'}</span>
+                </div>
+                {selectedPatient.mainComplaint ? (
+                  <p className="mt-2 text-xs text-[#55422f]">{selectedPatient.mainComplaint}</p>
+                ) : null}
+              </div>
+              <div className="rounded-sm bg-[#FFF8ED] px-3 py-2">
+                <p className="text-xs font-bold text-[#6A3710]">Recebido</p>
+                <p className="text-sm font-bold text-[#3A1C0B]">{formatCurrency(selectedPatient.received)}</p>
+              </div>
+              <div className="rounded-sm bg-[#FFF8ED] px-3 py-2">
+                <p className="text-xs font-bold text-[#6A3710]">Esperado</p>
+                <p className="text-sm font-bold text-[#3A1C0B]">{formatCurrency(selectedPatient.expected)}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <div className="grid grid-cols-[4.5rem_1fr_minmax(4.5rem,auto)_minmax(4.5rem,auto)] gap-2 text-xs font-bold text-[#6A3710]">
+                <span>Data</span>
+                <span>Sessao</span>
+                <span className="text-right">Feito</span>
+                <span className="text-right">Esperado</span>
+              </div>
+              {selectedPatient.sessionDetails.map((session) => (
+                <div
+                  key={session.id}
+                  className="grid grid-cols-[4.5rem_1fr_minmax(4.5rem,auto)_minmax(4.5rem,auto)] gap-2 rounded-sm bg-[#FFF8ED] px-2 py-2 text-xs text-[#111111]"
+                >
+                  <span>{formatDate(session.startsAt)}</span>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{session.title || 'Sessao'}</p>
+                    <p className="text-[#8A6A4F]">
+                      {formatPaymentStatus(session.paymentStatus)}
+                      {session.paymentStatus === 'paid' ? ` - ${formatPaymentMethod(session.paymentMethod)}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-right font-semibold">
+                    {session.paymentStatus === 'paid' ? formatCurrency(session.receivedAmount) : '-'}
+                  </span>
+                  <span className="text-right font-semibold">{formatCurrency(session.expectedAmount)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </Dialog>
     </div>
   );
 }

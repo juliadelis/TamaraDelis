@@ -47,7 +47,7 @@ function TextAreaField({
       <textarea
         value={value}
         onChange={(event) => onChange(name, event.target.value)}
-        className="mt-1 min-h-24 w-full rounded-md border border-[#D8C0A3] bg-white px-3 py-2 text-sm text-[#111111] outline-none focus:border-[#6A3710]"
+        className="mt-1 min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-3 py-2 text-sm text-[#111111] outline-none focus:border-[#6A3710]"
       />
     </label>
   );

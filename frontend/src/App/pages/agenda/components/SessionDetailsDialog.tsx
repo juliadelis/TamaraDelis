@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { FiArrowLeft, FiCheck, FiRefreshCw, FiVideo, FiX } from 'react-icons/fi';
-import type { PatientSession, PatientSessionPayload, SessionStatus } from '../../../../shared/models/session.model';
+import type {
+  PatientSession,
+  PatientSessionPayload,
+  PaymentMethod,
+  PaymentStatus,
+  SessionStatus,
+} from '../../../../shared/models/session.model';
+import type { DeleteSessionScope } from '../../../../shared/services/session';
 import { saveSession } from '../../../../shared/services/session';
 
 type SessionDetailsDialogProps = {
@@ -11,7 +18,7 @@ type SessionDetailsDialogProps = {
   deleting: boolean;
   onHide: () => void;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: (scope?: DeleteSessionScope) => void;
   onSaved: (session: PatientSession) => void;
 };
 
@@ -56,6 +63,13 @@ function formatTimeRange(session: PatientSession) {
   });
 
   return `${start} - ${end}`;
+}
+
+function formatSessionDate(session: PatientSession) {
+  const date = new Date(session.startsAt);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleDateString('pt-BR');
 }
 
 function toLocalInputValue(value = '') {
@@ -107,6 +121,10 @@ function buildPayload(
     recurrentThemes: updates.recurrentThemes ?? session.recurrentThemes,
     rescheduledFromStartsAt: updates.rescheduledFromStartsAt ?? session.rescheduledFromStartsAt,
     rescheduledFromEndsAt: updates.rescheduledFromEndsAt ?? session.rescheduledFromEndsAt,
+    paymentStatus: updates.paymentStatus ?? session.paymentStatus,
+    paymentMethod: updates.paymentMethod ?? session.paymentMethod,
+    recurrenceGroupId: updates.recurrenceGroupId ?? session.recurrenceGroupId,
+    recurrenceType: updates.recurrenceType ?? session.recurrenceType,
     syncGoogle: Boolean(session.googleEventId),
   };
 }
@@ -130,6 +148,8 @@ export function SessionDetailsDialog({
   const [moodScale, setMoodScale] = useState(4);
   const [anxietyScale, setAnxietyScale] = useState(3);
   const [theme, setTheme] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('paid');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [rescheduling, setRescheduling] = useState(false);
   const [rescheduleStart, setRescheduleStart] = useState('');
   const [rescheduleEnd, setRescheduleEnd] = useState('');
@@ -137,6 +157,7 @@ export function SessionDetailsDialog({
 
   const currentMeta = STATUS_META[status];
   const showCompletedFields = status === 'completed';
+  const isRecurringSession = Boolean(session?.recurrenceGroupId);
   const patientInitial = useMemo(
     () => session?.patientName?.trim().charAt(0).toUpperCase() || 'S',
     [session]
@@ -148,13 +169,22 @@ export function SessionDetailsDialog({
       return;
     }
 
-    setStatus(initialStatus || session.status);
+    const nextStatus = initialStatus || session.status;
+    setStatus(nextStatus);
     setNotes(session.notes || '');
     setCid(session.cid || '');
     setTags(session.tags || []);
     setMoodScale(session.moodScale || 4);
     setAnxietyScale(session.anxietyScale || 3);
     setTheme(session.recurrentThemes || session.sessionTheme || '');
+    setPaymentStatus(
+      nextStatus === 'completed'
+        ? session.status === 'completed'
+          ? session.paymentStatus || 'paid'
+          : 'paid'
+        : session.paymentStatus || 'pending'
+    );
+    setPaymentMethod(session.paymentMethod || 'pix');
     setRescheduling(false);
     setRescheduleStart(toLocalInputValue(session.startsAt));
     setRescheduleEnd(toLocalInputValue(session.endsAt));
@@ -179,6 +209,8 @@ export function SessionDetailsDialog({
 
   const handlePresent = () => {
     setStatus('completed');
+    setPaymentStatus('paid');
+    setPaymentMethod((current) => current || 'pix');
   };
 
   const handleMissed = async () => {
@@ -217,6 +249,8 @@ export function SessionDetailsDialog({
       moodScale: showCompletedFields ? moodScale : session.moodScale,
       anxietyScale: showCompletedFields ? anxietyScale : session.anxietyScale,
       recurrentThemes: showCompletedFields ? theme : session.recurrentThemes,
+      paymentStatus: showCompletedFields ? paymentStatus : session.paymentStatus,
+      paymentMethod: showCompletedFields && paymentStatus === 'paid' ? paymentMethod : '',
       rescheduledFromStartsAt: rescheduling ? session.startsAt : session.rescheduledFromStartsAt,
       rescheduledFromEndsAt: rescheduling ? session.endsAt : session.rescheduledFromEndsAt,
     });
@@ -265,7 +299,9 @@ export function SessionDetailsDialog({
               <h2 className="truncate text-2xl font-bold text-[#111111]">
                 {session.patientName || 'Paciente'}
               </h2>
-              <p className="mt-1 text-base text-[#111111]">{formatTimeRange(session)}</p>
+              <p className="mt-1 text-base text-[#111111]">
+                {formatSessionDate(session)} - {formatTimeRange(session)}
+              </p>
             </div>
           </div>
 
@@ -358,12 +394,38 @@ export function SessionDetailsDialog({
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="mb-1 min-h-20 rounded border border-[#6A3710] px-3 py-2 text-sm"
+            className="mb-1 min-h-36 resize-y rounded border border-[#6A3710] px-3 py-2 text-sm"
             placeholder="Paciente costuma faltar"
           />
 
           {showCompletedFields ? (
             <>
+              <div className="mb-5 grid gap-3 sm:grid-cols-2">
+                <label className="text-sm font-bold text-[#111111]">
+                  Pagamento
+                  <select
+                    value={paymentStatus}
+                    onChange={(event) => setPaymentStatus(event.target.value as PaymentStatus)}
+                    className="mt-1 w-full rounded border border-[#6A3710] bg-white px-3 py-2 text-sm font-normal"
+                  >
+                    <option value="paid">Pago</option>
+                    <option value="pending">Nao pago</option>
+                  </select>
+                </label>
+                <label className="text-sm font-bold text-[#111111]">
+                  Metodo de pagamento
+                  <select
+                    value={paymentMethod}
+                    onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)}
+                    disabled={paymentStatus !== 'paid'}
+                    className="mt-1 w-full rounded border border-[#6A3710] bg-white px-3 py-2 text-sm font-normal disabled:bg-[#F5EEE8] disabled:text-[#8A6A4F]"
+                  >
+                    <option value="pix">Pix</option>
+                    <option value="cash">Dinheiro</option>
+                  </select>
+                </label>
+              </div>
+
               <label className="mb-1 text-sm font-bold text-[#111111]">CID</label>
               <input
                 value={cid}
@@ -390,48 +452,6 @@ export function SessionDetailsDialog({
                 ))}
               </div>
 
-              <h3 className="mb-2 text-sm font-bold text-[#111111]">Escalas</h3>
-              <div className="mb-4 grid gap-3">
-                <div>
-                  <p className="mb-2 text-xs text-[#3A1C0B]">Humor</p>
-                  <div className="grid grid-cols-5 gap-9">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setMoodScale(value)}
-                        className={`h-8 w-8 rounded border text-sm ${
-                          moodScale === value
-                            ? 'border-[#2BA64B] bg-[#2BA64B] text-white'
-                            : 'border-[#6A3710] bg-white text-[#3A1C0B]'
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="mb-2 text-xs text-[#3A1C0B]">Ansiedade</p>
-                  <div className="grid grid-cols-5 gap-9">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setAnxietyScale(value)}
-                        className={`h-8 w-8 rounded border text-sm ${
-                          anxietyScale === value
-                            ? 'border-[#CDA131] bg-[#CDA131] text-white'
-                            : 'border-[#6A3710] bg-white text-[#3A1C0B]'
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               <label className="mb-1 text-sm font-bold text-[#111111]">Temas recorrentes</label>
               <input
                 value={theme}
@@ -456,14 +476,35 @@ export function SessionDetailsDialog({
                 >
                   Cancelar
                 </button>
-                <button
-                  type="button"
-                  onClick={onDelete}
-                  disabled={deleting}
-                  className="rounded-md bg-[#B42318] px-3 py-2 text-sm font-semibold text-white"
-                >
-                  {deleting ? 'Excluindo...' : 'Confirmar'}
-                </button>
+                {isRecurringSession ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onDelete('single')}
+                      disabled={deleting}
+                      className="rounded-md bg-[#B42318] px-3 py-2 text-sm font-semibold text-white"
+                    >
+                      {deleting ? 'Excluindo...' : 'Só essa sessão'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete('future')}
+                      disabled={deleting}
+                      className="rounded-md bg-[#8F1D14] px-3 py-2 text-sm font-semibold text-white"
+                    >
+                      Essa e as próximas
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onDelete('single')}
+                    disabled={deleting}
+                    className="rounded-md bg-[#B42318] px-3 py-2 text-sm font-semibold text-white"
+                  >
+                    {deleting ? 'Excluindo...' : 'Confirmar'}
+                  </button>
+                )}
               </div>
             </div>
           ) : null}

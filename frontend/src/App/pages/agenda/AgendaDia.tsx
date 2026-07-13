@@ -5,7 +5,7 @@ import { DayAgenda } from './components/DayAgenda';
 import { SessionDetailsDialog } from './components/SessionDetailsDialog';
 import type { PatientSession } from '../../../shared/models/session.model';
 import type { PatientRecord } from '../../../shared/models/patient.model';
-import { deleteSession, getSessions } from '../../../shared/services/session';
+import { deleteSession, getSessions, type DeleteSessionScope } from '../../../shared/services/session';
 import { getPatientRecord } from '../../../shared/services/patient';
 import { SessionFormDialog } from '../paciente/components/SessionFormDialog';
 
@@ -152,12 +152,12 @@ export function AgendaDia() {
     setDialogVisible(true);
   };
 
-  const handleDeleteSession = async () => {
+  const handleDeleteSession = async (scope: DeleteSessionScope = 'single') => {
     if (!selectedSession) return;
 
     setDeleting(true);
     try {
-      await deleteSession(selectedSession.id, Boolean(selectedSession.googleEventId));
+      await deleteSession(selectedSession.id, Boolean(selectedSession.googleEventId), scope);
       setSessions((current) => current.filter((item) => item.id !== selectedSession.id));
       setSelectedSession(null);
     } catch (error) {

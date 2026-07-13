@@ -258,11 +258,23 @@ function ProntuarioView({ record }: { record: PatientRecord | null }) {
 
   return (
     <div className="overflow-hidden rounded-md border border-[#C8793D] bg-white">
+      <div className="border-b border-[#D79A69] px-4 py-5">
+        <Link
+          to={`/pacientes/${record.id}/editar`}
+          className="inline-flex w-full items-center justify-center rounded-md bg-[#6A3710] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#502815] sm:w-auto"
+        >
+          Editar prontuário
+        </Link>
+      </div>
+     
       {sections.map((section, sectionIndex) => (
         <section
           key={section.title || 'dados-pessoais'}
           className={sectionIndex > 0 ? 'border-t border-[#D79A69]' : ''}
         >
+
+
+
           <div className="space-y-3 px-4 py-4">
             {section.title ? (
               <h2 className="text-sm font-bold text-[#6A3710]">{section.title}</h2>
@@ -285,14 +297,7 @@ function ProntuarioView({ record }: { record: PatientRecord | null }) {
         </section>
       ))}
 
-      <div className="border-t border-[#D79A69] px-4 py-5">
-        <Link
-          to={`/pacientes/${record.id}/editar`}
-          className="inline-flex w-full items-center justify-center rounded-md bg-[#6A3710] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#502815] sm:w-auto"
-        >
-          Editar prontuário
-        </Link>
-      </div>
+     
     </div>
   );
 }
