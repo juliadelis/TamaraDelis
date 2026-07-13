@@ -499,7 +499,7 @@ export function SessionFormDialog({
         </label>
 
         <label className="text-sm font-medium text-[#502815] sm:col-span-2">
-          Observacoes
+          Observações
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
@@ -523,7 +523,7 @@ export function SessionFormDialog({
                 ? 'Verificando conexao...'
                 : googleConnected
                 ? `Conectado${googleEmail ? ` em ${googleEmail}` : ''}`
-                : 'Google Agenda ainda nao conectado.'}
+                : 'Google Agenda ainda não conectado.'}
             </p>
             {!googleConnected ? (
               <button

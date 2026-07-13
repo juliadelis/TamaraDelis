@@ -127,7 +127,7 @@ router.get('/google/url', async (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
 
   if (!clientId) {
-    return res.status(500).json({ error: 'GOOGLE_CLIENT_ID nao configurado.' });
+    return res.status(500).json({ error: 'GOOGLE_CLIENT_ID nãoconfigurado.' });
   }
 
   const params = new URLSearchParams({

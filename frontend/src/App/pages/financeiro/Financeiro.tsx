@@ -341,8 +341,8 @@ export function Financeiro() {
             <div className="grid gap-3 border-b border-[#E8C6A8] pb-4 sm:grid-cols-[1fr_auto_auto] sm:items-start">
               <div className="min-w-0">
                 <div className="mt-1 grid gap-1 text-xs text-[#55422f] sm:grid-cols-2">
-                  <span>{selectedPatient.patientEmail || 'Email nao informado'}</span>
-                  <span>{selectedPatient.patientPhone || 'Telefone nao informado'}</span>
+                  <span>{selectedPatient.patientEmail || 'Email não informado'}</span>
+                  <span>{selectedPatient.patientPhone || 'Telefone não informado'}</span>
                   <span>Valor atual: {formatCurrency(selectedPatient.currentSessionPrice || 0)}</span>
                   <span>Sessoes/mes: {selectedPatient.monthlySessions || '-'}</span>
                 </div>

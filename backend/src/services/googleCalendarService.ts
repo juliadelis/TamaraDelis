@@ -54,7 +54,7 @@ const encryptionKey = process.env.TOKEN_ENCRYPTION_KEY || '';
 
 function getEncryptionKey() {
   if (!encryptionKey) {
-    throw new Error('TOKEN_ENCRYPTION_KEY nao configurada.');
+    throw new Error('TOKEN_ENCRYPTION_KEY não configurada.');
   }
 
   return crypto.createHash('sha256').update(encryptionKey).digest();
@@ -141,7 +141,7 @@ async function refreshAccessToken(connection: GoogleConnectionRow) {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error('GOOGLE_CLIENT_ID ou GOOGLE_CLIENT_SECRET nao configurados.');
+    throw new Error('GOOGLE_CLIENT_ID ou GOOGLE_CLIENT_SECRET não configurados.');
   }
 
   const response = await fetch(GOOGLE_TOKEN_URL, {
@@ -258,7 +258,7 @@ async function updateGoogleSyncMetadata(sessionId: string, values: Record<string
 export async function upsertGoogleCalendarEvent(userId: string, session: SessionRow) {
   const connection = await getConnection(userId);
   if (!connection) {
-    throw new Error('Google Agenda nao conectado. Entre com Google novamente e autorize o acesso ao calendario.');
+    throw new Error('Google Agenda não conectado. Entre com Google novamente e autorize o acesso ao calendario.');
   }
 
   const calendarId = session.google_calendar_id || connection.calendar_id || 'primary';

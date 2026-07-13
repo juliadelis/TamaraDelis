@@ -390,7 +390,7 @@ export function SessionDetailsDialog({
             </div>
           ) : null}
 
-          <label className="mb-1 text-sm font-bold text-[#111111]">Observacoes</label>
+          <label className="mb-1 text-sm font-bold text-[#111111]">Observações</label>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
@@ -409,7 +409,7 @@ export function SessionDetailsDialog({
                     className="mt-1 w-full rounded border border-[#6A3710] bg-white px-3 py-2 text-sm font-normal"
                   >
                     <option value="paid">Pago</option>
-                    <option value="pending">Nao pago</option>
+                    <option value="pending">Não pago</option>
                   </select>
                 </label>
                 <label className="text-sm font-bold text-[#111111]">

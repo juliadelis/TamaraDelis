@@ -122,7 +122,7 @@ export const PacienteDetalhe = () => {
 
   return (
     <div className="">
-      <div className="mx-auto bg-white text-left sm:max-w-2xl">
+      <div className="mx-auto bg-white text-left ">
         <PatientHeader record={record} onDeleteClick={() => setDeleteDialogVisible(true)} />
 
         <div

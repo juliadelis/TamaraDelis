@@ -24,7 +24,7 @@ export const Login = () => {
     const oauthError = params.get('error');
 
     if (oauthError) {
-      setError('Nao foi possivel concluir o login com Google.');
+      setError('Não foi possivel concluir o login com Google.');
       return;
     }
 

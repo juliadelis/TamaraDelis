@@ -684,13 +684,13 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
           })}
 
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre setores de conflito</span>
+            <span className="text-sm font-medium text-[#6A3710]">Observações sobre setores de conflito</span>
             <textarea
               name="conflictSectorsNotes"
               value={formValues.conflictSectorsNotes || ''}
               onChange={handleChange}
               className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
-              placeholder="Descreva observacoes sobre os setores de conflito"
+              placeholder="Descreva observações sobre os setores de conflito"
             />
           </label>
         </div>
@@ -724,13 +724,13 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
         </div>
 
         <label className="mt-4 block space-y-2">
-          <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre estilo de personalidade</span>
+          <span className="text-sm font-medium text-[#6A3710]">Observações sobre estilo de personalidade</span>
           <textarea
             name="personalityStyleNotes"
             value={formValues.personalityStyleNotes || ''}
             onChange={handleChange}
             className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
-            placeholder="Descreva observacoes sobre o estilo de personalidade"
+            placeholder="Descreva observações sobre o estilo de personalidade"
           />
         </label>
       </div>
@@ -934,13 +934,13 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre dinamica psiquica</span>
+            <span className="text-sm font-medium text-[#6A3710]">Observações sobre dinamica psiquica</span>
             <textarea
               name="psychicDynamicsNotes"
               value={formValues.psychicDynamicsNotes || ''}
               onChange={handleChange}
               className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
-              placeholder="Descreva observacoes sobre a dinamica psiquica"
+              placeholder="Descreva observações sobre a dinamica psiquica"
             />
           </label>
         </div>
@@ -1179,13 +1179,13 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre analise clinica</span>
+            <span className="text-sm font-medium text-[#6A3710]">Observações sobre analise clinica</span>
             <textarea
               name="clinicalAnalysisNotes"
               value={formValues.clinicalAnalysisNotes || ''}
               onChange={handleChange}
               className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
-              placeholder="Descreva observacoes sobre a analise clinica"
+              placeholder="Descreva observações sobre a analise clinica"
             />
           </label>
         </div>
@@ -1237,13 +1237,13 @@ export const PatientForm = ({ record, onSave }: PatientFormProps) => {
         </div>
 
         <label className="mt-6 block space-y-2">
-          <span className="text-sm font-medium text-[#6A3710]">Observacoes sobre tratamento</span>
+          <span className="text-sm font-medium text-[#6A3710]">Observações sobre tratamento</span>
           <textarea
             name="treatmentNotes"
             value={formValues.treatmentNotes || ''}
             onChange={handleChange}
             className="min-h-36 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm text-[#1E1E1E] outline-none focus:border-[#6A3710]"
-            placeholder="Descreva observacoes sobre o tratamento"
+            placeholder="Descreva observações sobre o tratamento"
           />
         </label>
       </div>

@@ -123,7 +123,7 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
   if (docs.length === 0) {
     return (
       <div className="rounded-md border border-[#D79A69] p-4 text-sm leading-6 text-[#55422f]">
-        Nenhum doc salvo ainda. Ao marcar uma sessao como realizada e preencher Observacoes, ela aparece aqui.
+        Nenhum doc salvo ainda. Ao marcar uma sessao como realizada e preencher observações, ela aparece aqui.
       </div>
     );
   }
@@ -224,7 +224,7 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
             disabled={saving || !selectedDoc}
             className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#502815] disabled:opacity-60"
           >
-            {saving ? 'Salvando...' : 'Salvar doc'}
+            {saving ? 'Salvando...' : 'Salvar documento'}
           </button>
         </div>
       </div>

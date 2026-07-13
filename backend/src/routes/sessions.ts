@@ -257,7 +257,7 @@ async function shouldSyncGoogle(userId: string, requestedSync: unknown) {
   const googleStatus = await getGoogleCalendarConnectionStatus(userId);
 
   if (explicitlyRequested && !googleStatus.connected) {
-    throw new Error('Google Agenda nao conectado. Entre com Google novamente e autorize o acesso ao calendario.');
+    throw new Error('Google Agenda não conectado. Entre com Google novamente e autorize o acesso ao calendario.');
   }
 
   return googleStatus.connected;
