@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getPatientRecord } from '../../../shared/services/patient';
+import { savePatientDocument } from '../../../shared/services/patientDocument';
 import { getSessions } from '../../../shared/services/session';
 import type { PatientRecord } from '../../../shared/models/patient.model';
 import type { PatientSession } from '../../../shared/models/session.model';
@@ -17,6 +18,8 @@ export function Documentos() {
   const [signatureDataUrl, setSignatureDataUrl] = useState('');
   const [loadingPatients, setLoadingPatients] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [savingDocument, setSavingDocument] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   const selectedPatient = useMemo(
     () => patients.find((patient) => patient.id === form.patientId) || null,
@@ -111,6 +114,38 @@ export function Documentos() {
     window.location.href = `mailto:${selectedPatient.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareMessage)}`;
   };
 
+  const handleSaveDocument = async () => {
+    if (!selectedPatient) {
+      window.alert('Selecione um paciente para salvar o documento.');
+      return;
+    }
+
+    setSavingDocument(true);
+    setSaveMessage('');
+    try {
+      const title = form.documentType === 'personalizado' ? form.customTitle || 'Documento' : documentTitle;
+      const description =
+        form.documentType === 'personalizado'
+          ? form.customDescription
+          : form.demandDescription || form.subject || form.conclusion || '';
+
+      await savePatientDocument({
+        patientId: selectedPatient.id,
+        documentType: form.documentType,
+        title,
+        description,
+        formData: form,
+        signatureDataUrl,
+      });
+
+      setSaveMessage('Documento salvo na aba Docs do paciente.');
+    } catch (err: any) {
+      setSaveMessage(err?.message || 'Erro ao salvar documento.');
+    } finally {
+      setSavingDocument(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-full text-left">
       <DocumentPrintStyles />
@@ -188,6 +223,17 @@ export function Documentos() {
               >
                 Exportar como PDF
               </button>
+
+              <button
+                type="button"
+                onClick={handleSaveDocument}
+                disabled={!selectedPatient || savingDocument}
+                className="w-full rounded-md border border-[#6A3710] px-4 py-3 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F7F2EC] disabled:cursor-not-allowed disabled:border-[#D8C0A3] disabled:text-[#B19A83]"
+              >
+                {savingDocument ? 'Salvando...' : 'Salvar no paciente'}
+              </button>
+
+              {saveMessage ? <p className="text-sm font-semibold text-[#6A3710]">{saveMessage}</p> : null}
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <button

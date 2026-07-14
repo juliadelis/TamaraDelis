@@ -159,6 +159,7 @@ export function DocumentFormFields({
   const isAtestado = form.documentType === 'atestado';
   const isLaudo = form.documentType === 'laudo';
   const isParecer = form.documentType === 'parecer';
+  const isPersonalizado = form.documentType === 'personalizado';
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -215,6 +216,18 @@ export function DocumentFormFields({
           <TextAreaField label="Assunto" name="subject" value={form.subject} onChange={onUpdateField} />
           <TextAreaField label="Diagnóstico / quadro clínico" name="diagnosis" value={form.diagnosis} onChange={onUpdateField} />
           <TextAreaField label="Conclusão / parecer" name="conclusion" value={form.conclusion} onChange={onUpdateField} />
+        </>
+      )}
+
+      {isPersonalizado && (
+        <>
+          <TextField label="Titulo" name="customTitle" value={form.customTitle} onChange={onUpdateField} />
+          <TextAreaField
+            label="Descricao do documento"
+            name="customDescription"
+            value={form.customDescription}
+            onChange={onUpdateField}
+          />
         </>
       )}
 

@@ -1,11 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PatientRecord } from '../../../../shared/models/patient.model';
+import type { PatientDocument } from '../../../../shared/models/patient-document.model';
 import type { PatientSession } from '../../../../shared/models/session.model';
+import { getPatientDocuments } from '../../../../shared/services/patientDocument';
 import { getSessions, updateSessionNotes } from '../../../../shared/services/session';
+import { DocumentPreview } from '../../documentos/DocumentPreview';
+import { DocumentPrintStyles } from '../../documentos/DocumentPrintStyles';
 
 type PatientDocsTabProps = {
   patient: PatientRecord;
 };
+
+type SessionDoc = {
+  kind: 'session';
+  id: string;
+  title: string;
+  subtitle: string;
+  session: PatientSession;
+};
+
+type SavedDoc = {
+  kind: 'saved';
+  id: string;
+  title: string;
+  subtitle: string;
+  document: PatientDocument;
+};
+
+type DocItem = SessionDoc | SavedDoc;
 
 function formatDateTime(value: string) {
   const date = new Date(value);
@@ -47,29 +69,48 @@ function formatTimeRange(session: PatientSession) {
 
 export function PatientDocsTab({ patient }: PatientDocsTabProps) {
   const [sessions, setSessions] = useState<PatientSession[]>([]);
-  const [selectedId, setSelectedId] = useState('');
+  const [savedDocuments, setSavedDocuments] = useState<PatientDocument[]>([]);
+  const [selectedKey, setSelectedKey] = useState('');
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const docs = useMemo(
-    () =>
-      sessions
-        .filter((session) => session.status === 'completed' && session.notes.trim())
-        .sort((a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime()),
-    [sessions]
-  );
+  const docs = useMemo<DocItem[]>(() => {
+    const sessionDocs: DocItem[] = sessions
+      .filter((session) => session.status === 'completed' && session.notes.trim())
+      .map((session) => ({
+        kind: 'session',
+        id: `session:${session.id}`,
+        title: session.title || 'Sessao realizada',
+        subtitle: formatDateTime(session.startsAt),
+        session,
+      }));
 
-  const selectedDoc = docs.find((session) => session.id === selectedId) || docs[0] || null;
+    const savedDocs: DocItem[] = savedDocuments.map((document) => ({
+      kind: 'saved',
+      id: `saved:${document.id}`,
+      title: document.title || 'Documento',
+      subtitle: formatDateTime(document.createdAt),
+      document,
+    }));
+
+    return [...savedDocs, ...sessionDocs];
+  }, [savedDocuments, sessions]);
+
+  const selectedDoc = docs.find((doc) => doc.id === selectedKey) || docs[0] || null;
 
   useEffect(() => {
     const loadDocs = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getSessions({ patientId: patient.id, status: 'completed' });
-        setSessions(data);
+        const [sessionData, documentData] = await Promise.all([
+          getSessions({ patientId: patient.id, status: 'completed' }),
+          getPatientDocuments(patient.id),
+        ]);
+        setSessions(sessionData);
+        setSavedDocuments(documentData);
       } catch (err: any) {
         setError(err?.message || 'Erro ao buscar documentos.');
       } finally {
@@ -82,24 +123,24 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
 
   useEffect(() => {
     if (!selectedDoc) {
-      setSelectedId('');
+      setSelectedKey('');
       setDraft('');
       return;
     }
 
-    setSelectedId(selectedDoc.id);
-    setDraft(selectedDoc.notes || '');
+    setSelectedKey(selectedDoc.id);
+    setDraft(selectedDoc.kind === 'session' ? selectedDoc.session.notes || '' : '');
   }, [selectedDoc?.id]);
 
   const handleSave = async () => {
-    if (!selectedDoc) {
+    if (!selectedDoc || selectedDoc.kind !== 'session') {
       return;
     }
 
     setSaving(true);
     setError(null);
     try {
-      const saved = await updateSessionNotes(selectedDoc.id, draft);
+      const saved = await updateSessionNotes(selectedDoc.session.id, draft);
       setSessions((current) => current.map((session) => (session.id === saved.id ? saved : session)));
     } catch (err: any) {
       setError(err?.message || 'Erro ao salvar documento.');
@@ -123,34 +164,27 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
   if (docs.length === 0) {
     return (
       <div className="rounded-md border border-[#D79A69] p-4 text-sm leading-6 text-[#55422f]">
-        Nenhum doc salvo ainda. Ao marcar uma sessao como realizada e preencher observações, ela aparece aqui.
+        Nenhum doc salvo ainda. Salve um documento na pagina Documentos ou registre observacoes em uma sessao realizada.
       </div>
     );
   }
 
   return (
-    <div className="grid gap-4 text-left lg:grid-cols-[220px_1fr]">
+    <div className="gap-4 text-left w-full flex flex-col">
+      <DocumentPrintStyles />
       <style>
         {`
-          .patient-doc-print {
+          .patient-session-doc-print {
             display: none;
           }
 
           @media print {
-            body * {
-              visibility: hidden !important;
-            }
-
-            .patient-doc-no-print {
-              display: none !important;
-            }
-
-            .patient-doc-print,
-            .patient-doc-print * {
+            .patient-session-doc-print,
+            .patient-session-doc-print * {
               visibility: visible !important;
             }
 
-            .patient-doc-print {
+            .patient-session-doc-print {
               display: block !important;
               position: absolute;
               inset: 0 auto auto 0;
@@ -162,96 +196,121 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
               font-family: Arial, sans-serif;
             }
 
-            .patient-doc-print-content {
+            .patient-session-doc-print-content {
               white-space: pre-wrap;
               line-height: 1.7;
             }
           }
         `}
       </style>
-      <div className="overflow-hidden rounded-md border border-[#D79A69]">
+
+      <div className="overflow-hidden rounded-md border border-[#D79A69] print:hidden">
         {docs.map((doc) => (
           <button
             key={doc.id}
             type="button"
-            onClick={() => setSelectedId(doc.id)}
+            onClick={() => setSelectedKey(doc.id)}
             className={`w-full border-b border-[#E7C7A8] px-4 py-3 text-left text-sm last:border-b-0 ${
               selectedDoc?.id === doc.id ? 'bg-[#FFF5DD] text-[#5A260F]' : 'bg-white text-[#111111]'
             }`}
           >
-            <span className="block font-bold">{doc.title || 'Sessao realizada'}</span>
-            <span className="mt-1 block text-xs text-[#55422f]">{formatDateTime(doc.startsAt)}</span>
+            <span className="block font-bold">{doc.title}</span>
+            <span className="mt-1 block text-xs text-[#55422f]">
+              {doc.kind === 'saved' ? 'Documento salvo' : 'Registro de sessao'} - {doc.subtitle}
+            </span>
           </button>
         ))}
       </div>
 
-      <div className="rounded-md border border-[#D79A69] bg-white p-4">
-        <div className="mb-4">
-          <h2 className="text-sm font-bold text-[#6A3710]">
-            {selectedDoc?.title || 'Sessao realizada'}
-          </h2>
-          <p className="mt-1 text-sm text-[#55422f]">
-            Consulta realizada em {selectedDoc ? formatDateTime(selectedDoc.startsAt) : '-'}
-          </p>
-          <p className="mt-1 text-sm text-[#55422f]">
-            Horário: {selectedDoc ? formatTimeRange(selectedDoc) : '-'}
-          </p>
-        </div>
+      {selectedDoc?.kind === 'saved' ? (
+        <div className="space-y-4">
+          <div className="print:hidden rounded-md border border-[#D79A69] bg-white p-4">
+            <h2 className="text-sm font-bold text-[#6A3710]">{selectedDoc.title}</h2>
+            <p className="mt-1 text-sm text-[#55422f]">Salvo em {selectedDoc.subtitle}</p>
+            {error ? <p className="mt-3 text-sm text-[#B42318]">{error}</p> : null}
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={handleExportPdf}
+                className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6]"
+              >
+                Exportar PDF
+              </button>
+            </div>
+          </div>
 
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-[#6A3710]">Documento editavel</span>
-          <textarea
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            className="min-h-72 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm leading-6 text-[#111111] outline-none focus:border-[#6A3710]"
+          <DocumentPreview
+            form={selectedDoc.document.formData}
+            signatureDataUrl={selectedDoc.document.signatureDataUrl}
           />
-        </label>
-
-        {error ? <p className="mt-3 text-sm text-[#B42318]">{error}</p> : null}
-
-        <div className="mt-4 flex flex-wrap justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleExportPdf}
-            disabled={!selectedDoc}
-            className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6] disabled:opacity-60"
-          >
-            Exportar PDF
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving || !selectedDoc}
-            className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#502815] disabled:opacity-60"
-          >
-            {saving ? 'Salvando...' : 'Salvar documento'}
-          </button>
         </div>
-      </div>
+      ) : selectedDoc?.kind === 'session' ? (
+        <>
+          <div className="rounded-md border border-[#D79A69] bg-white p-4 print:hidden">
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-[#6A3710]">{selectedDoc.title}</h2>
+              <p className="mt-1 text-sm text-[#55422f]">
+                Consulta realizada em {formatDateTime(selectedDoc.session.startsAt)}
+              </p>
+              <p className="mt-1 text-sm text-[#55422f]">
+                Horario: {formatTimeRange(selectedDoc.session)}
+              </p>
+            </div>
 
-      {selectedDoc ? (
-        <article className="patient-doc-print">
-          <header style={{ borderBottom: '1px solid #D8C0A3', paddingBottom: 16, marginBottom: 24 }}>
-            <h1 style={{ color: '#3A1C0B', fontSize: 22, margin: 0 }}>Registro de sessao</h1>
-            <p style={{ margin: '8px 0 0', fontSize: 14 }}>
-              <strong>Paciente:</strong> {patient.fullName}
-            </p>
-            <p style={{ margin: '6px 0 0', fontSize: 14 }}>
-              <strong>Data:</strong> {formatDate(selectedDoc.startsAt)}
-            </p>
-            <p style={{ margin: '6px 0 0', fontSize: 14 }}>
-              <strong>Horário:</strong> {formatTimeRange(selectedDoc)}
-            </p>
-          </header>
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-[#6A3710]">Documento editavel</span>
+              <textarea
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                className="min-h-72 w-full resize-y rounded-md border border-[#D8C0A3] bg-white px-4 py-3 text-sm leading-6 text-[#111111] outline-none focus:border-[#6A3710]"
+              />
+            </label>
 
-          <section>
-            <h2 style={{ color: '#3A1C0B', fontSize: 16, marginBottom: 12 }}>
-              {selectedDoc.title || 'Sessao realizada'}
-            </h2>
-            <div className="patient-doc-print-content">{draft || '-'}</div>
-          </section>
-        </article>
+            {error ? <p className="mt-3 text-sm text-[#B42318]">{error}</p> : null}
+
+            <div className="mt-4 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleExportPdf}
+                className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6]"
+              >
+                Exportar PDF
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#502815] disabled:opacity-60"
+              >
+                {saving ? 'Salvando...' : 'Salvar documento'}
+              </button>
+            </div>
+          </div>
+
+          <article className="patient-session-doc-print">
+            <header style={{ borderBottom: '1px solid #D8C0A3', paddingBottom: 16, marginBottom: 24 }}>
+              <h1 style={{ color: '#3A1C0B', fontSize: 22, margin: 0 }}>Registro de sessao</h1>
+              <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+                <strong>Paciente:</strong> {patient.fullName}
+              </p>
+              <p style={{ margin: '6px 0 0', fontSize: 14 }}>
+                <strong>Data:</strong> {formatDate(selectedDoc.session.startsAt)}
+              </p>
+              <p style={{ margin: '6px 0 0', fontSize: 14 }}>
+                <strong>Horario:</strong> {formatTimeRange(selectedDoc.session)}
+              </p>
+            </header>
+
+            <section>
+              <h2 style={{ color: '#3A1C0B', fontSize: 16, marginBottom: 12 }}>
+                {selectedDoc.title}
+              </h2>
+              <div className="patient-session-doc-print-content">{draft || '-'}</div>
+            </section>
+          </article>
+        </>
       ) : null}
     </div>
   );
 }
+

@@ -18,6 +18,17 @@ function Identification({ form }: { form: DocumentForm }) {
 }
 
 function DocumentBody({ form }: { form: DocumentForm }) {
+  if (form.documentType === 'personalizado') {
+    return (
+      <>
+        <h1>{form.customTitle || 'Documento'}</h1>
+        <div className="whitespace-pre-wrap">
+          {form.customDescription || 'Escreva a descricao do documento.'}
+        </div>
+      </>
+    );
+  }
+
   if (form.documentType === 'declaracao') {
     return (
       <>

@@ -1,4 +1,4 @@
-export type DocumentType = 'atestado' | 'declaracao' | 'laudo' | 'parecer';
+export type DocumentType = 'atestado' | 'declaracao' | 'laudo' | 'parecer' | 'personalizado';
 
 export type DocumentForm = {
   documentType: DocumentType;
@@ -22,6 +22,8 @@ export type DocumentForm = {
   subject: string;
   diagnosis: string;
   modality: string;
+  customTitle: string;
+  customDescription: string;
 };
 
 export const ADDRESS_LINES = [
@@ -34,6 +36,7 @@ export const DOCUMENT_LABEL: Record<DocumentType, string> = {
   declaracao: 'Declaração de Comparecimento',
   laudo: 'Laudo Psicológico',
   parecer: 'Parecer Psicológico',
+  personalizado: 'Texto personalizado',
 };
 
 export const initialForm: DocumentForm = {
@@ -58,4 +61,6 @@ export const initialForm: DocumentForm = {
   subject: 'Solicitação de documento psicológico contendo informações pertinentes ao acompanhamento realizado.',
   diagnosis: '',
   modality: 'Online',
+  customTitle: '',
+  customDescription: '',
 };
