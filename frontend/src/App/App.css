@@ -1,0 +1,36 @@
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-content,
+.p-dialog .p-dialog-footer {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.p-dialog .p-dialog-header {
+  border-bottom: 0 !important;
+}
+
+.p-dialog .p-dialog-footer {
+  border-top: 0 !important;
+}
+
+.p-dialog .p-dialog-content {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.p-dialog .p-dialog-header + .p-dialog-content,
+.p-dialog .p-dialog-content + .p-dialog-footer {
+  border-top: 0 !important;
+}
+
+.p-dialog .p-dialog-header::before,
+.p-dialog .p-dialog-header::after,
+.p-dialog .p-dialog-content::before,
+.p-dialog .p-dialog-content::after,
+.p-dialog .p-dialog-footer::before,
+.p-dialog .p-dialog-footer::after {
+  content: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}

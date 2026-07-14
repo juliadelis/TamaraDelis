@@ -91,5 +91,45 @@ router.post('/', async (req, res) => {
   return res.status(201).json(rowToDocument(data as PatientDocumentRow));
 });
 
+router.put('/:id', async (req, res) => {
+  const userId = (req as any).user.id as string;
+
+  const { data, error } = await supabase
+    .from('patient_documents')
+    .update({
+      document_type: text(req.body.documentType) || null,
+      title: text(req.body.title) || null,
+      description: text(req.body.description) || null,
+      form_data: req.body.formData || {},
+      signature_data_url: text(req.body.signatureDataUrl) || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', req.params.id)
+    .eq('user_id', userId)
+    .select('*')
+    .single();
+
+  if (error) {
+    return res.status(error.code === 'PGRST116' ? 404 : 500).json({ error: error.message });
+  }
+
+  return res.json(rowToDocument(data as PatientDocumentRow));
+});
+
+router.delete('/:id', async (req, res) => {
+  const userId = (req as any).user.id as string;
+  const { error } = await supabase
+    .from('patient_documents')
+    .delete()
+    .eq('id', req.params.id)
+    .eq('user_id', userId);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(204).send();
+});
+
 export default router;
 

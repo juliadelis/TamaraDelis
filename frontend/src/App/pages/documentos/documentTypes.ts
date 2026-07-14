@@ -1,4 +1,4 @@
-export type DocumentType = 'atestado' | 'declaracao' | 'laudo' | 'parecer' | 'personalizado';
+export type DocumentType = 'atestado' | 'declaracao' | 'laudo' | 'parecer' | 'reembolso' | 'personalizado';
 
 export type DocumentForm = {
   documentType: DocumentType;
@@ -6,6 +6,7 @@ export type DocumentForm = {
   sessionId: string;
   patientName: string;
   patientCpf: string;
+  patientBirthDate: string;
   firstConsultationDate: string;
   issueDate: string;
   appointmentDate: string;
@@ -22,6 +23,15 @@ export type DocumentForm = {
   subject: string;
   diagnosis: string;
   modality: string;
+  reimbursementInsurance: string;
+  reimbursementFrequency: string;
+  reimbursementSessionDuration: string;
+  reimbursementSessionPrice: string;
+  reimbursementSessionPriceWords: string;
+  reimbursementDiagnosis: string;
+  firstContactDate: string;
+  firstInterviewDate: string;
+  firstInterviewTime: string;
   customTitle: string;
   customDescription: string;
 };
@@ -36,6 +46,7 @@ export const DOCUMENT_LABEL: Record<DocumentType, string> = {
   declaracao: 'Declaração de Comparecimento',
   laudo: 'Laudo Psicológico',
   parecer: 'Parecer Psicológico',
+  reembolso: 'Relatório para reembolso',
   personalizado: 'Texto personalizado',
 };
 
@@ -45,6 +56,7 @@ export const initialForm: DocumentForm = {
   sessionId: '',
   patientName: '',
   patientCpf: '',
+  patientBirthDate: '',
   firstConsultationDate: '',
   issueDate: new Date().toISOString().slice(0, 10),
   appointmentDate: '',
@@ -61,6 +73,15 @@ export const initialForm: DocumentForm = {
   subject: 'Solicitação de documento psicológico contendo informações pertinentes ao acompanhamento realizado.',
   diagnosis: '',
   modality: 'Online',
+  reimbursementInsurance: '',
+  reimbursementFrequency: '1 sessão semanal',
+  reimbursementSessionDuration: '50 minutos',
+  reimbursementSessionPrice: '',
+  reimbursementSessionPriceWords: '',
+  reimbursementDiagnosis: '',
+  firstContactDate: '',
+  firstInterviewDate: '',
+  firstInterviewTime: '',
   customTitle: '',
   customDescription: '',
 };

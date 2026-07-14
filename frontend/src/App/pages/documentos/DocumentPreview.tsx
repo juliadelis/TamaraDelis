@@ -29,6 +29,66 @@ function DocumentBody({ form }: { form: DocumentForm }) {
     );
   }
 
+  if (form.documentType === 'reembolso') {
+    return (
+      <>
+        <h1>Relatório Psicoterápico</h1>
+
+        <h2>Identificação da profissional</h2>
+        <p>Psicóloga: Tamara V. Delis - CPF: 203.242.638-21.</p>
+        <p>CRP: 06/106405</p>
+
+        <h2>Identificação da paciente</h2>
+        <p>Nome: {form.patientName || '______________________________________'}</p>
+        <p>Data de nascimento: {formatDate(form.patientBirthDate)}</p>
+
+        <p>
+          Declaro, para os devidos fins, que a paciente acima identificada iniciou tratamento psicológico sob meus
+          cuidados desde <strong>{formatDate(form.firstConsultationDate)}</strong>, com frequência{' '}
+          <strong>{form.reimbursementFrequency || '____________'}</strong>, em sessões individuais de{' '}
+          <strong>{form.reimbursementSessionDuration || '____ minutos'}</strong> de duração.
+        </p>
+
+        <p>
+          O acompanhamento psicológico é realizado em conformidade com os princípios éticos e técnicos da profissão,
+          visando à promoção da saúde mental, redução do sofrimento psíquico, desenvolvimento de recursos emocionais e
+          melhora do funcionamento global da paciente.
+        </p>
+
+        <p>
+          Informa-se que o acompanhamento ocorre em razão de quadro clínico compatível com o diagnóstico CID-10/CID-11:{' '}
+          <strong>{form.reimbursementDiagnosis || '___________'}</strong>.
+        </p>
+
+        <p>
+          O primeiro contato se deu dia <strong>{formatDate(form.firstContactDate)}</strong>, com agendamento da 1ª
+          entrevista dia <strong>{formatDate(form.firstInterviewDate)}</strong>, às{' '}
+          <strong>{form.firstInterviewTime || '___h'}</strong>.
+        </p>
+
+        <p>
+          Até o presente momento, permanece indicada a continuidade do acompanhamento psicológico, não sendo possível
+          estabelecer previsão de alta terapêutica, uma vez que esta depende da evolução clínica e dos objetivos
+          terapêuticos estabelecidos no processo psicoterápico.
+        </p>
+
+        <h2>Informações para reembolso</h2>
+        <p>Interessada: Convênio {form.reimbursementInsurance || '__________'}.</p>
+        <p>Frequência: {form.reimbursementFrequency || '1 sessão semanal'}.</p>
+        <p>Duração de cada sessão: {form.reimbursementSessionDuration || '50 minutos'}.</p>
+        <p>
+          Valor por sessão: R$ {form.reimbursementSessionPrice || '________'} (
+          {form.reimbursementSessionPriceWords || '__________ reais'}).
+        </p>
+        <p>
+          Os recibos correspondentes aos atendimentos são emitidos mensalmente, podendo ser apresentados à operadora do
+          plano de saúde para solicitação de reembolso, conforme as regras contratuais vigentes.
+        </p>
+        <p>Este relatório foi elaborado a pedido da paciente para fins de comprovação de acompanhamento psicológico.</p>
+      </>
+    );
+  }
+
   if (form.documentType === 'declaracao') {
     return (
       <>

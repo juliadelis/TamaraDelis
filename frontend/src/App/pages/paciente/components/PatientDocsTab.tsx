@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Dialog } from 'primereact/dialog';
 import type { PatientRecord } from '../../../../shared/models/patient.model';
 import type { PatientDocument } from '../../../../shared/models/patient-document.model';
 import type { PatientSession } from '../../../../shared/models/session.model';
-import { getPatientDocuments } from '../../../../shared/services/patientDocument';
+import { deletePatientDocument, getPatientDocuments, updatePatientDocument } from '../../../../shared/services/patientDocument';
 import { getSessions, updateSessionNotes } from '../../../../shared/services/session';
+import { DocumentFormFields } from '../../documentos/DocumentFormFields';
 import { DocumentPreview } from '../../documentos/DocumentPreview';
 import { DocumentPrintStyles } from '../../documentos/DocumentPrintStyles';
+import type { DocumentForm } from '../../documentos/documentTypes';
 
 type PatientDocsTabProps = {
   patient: PatientRecord;
@@ -72,6 +75,10 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
   const [savedDocuments, setSavedDocuments] = useState<PatientDocument[]>([]);
   const [selectedKey, setSelectedKey] = useState('');
   const [draft, setDraft] = useState('');
+  const [editingSavedDocument, setEditingSavedDocument] = useState(false);
+  const [savedDocumentDraft, setSavedDocumentDraft] = useState<DocumentForm | null>(null);
+  const [savedDocumentSignature, setSavedDocumentSignature] = useState('');
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,6 +137,9 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
 
     setSelectedKey(selectedDoc.id);
     setDraft(selectedDoc.kind === 'session' ? selectedDoc.session.notes || '' : '');
+    setEditingSavedDocument(false);
+    setSavedDocumentDraft(selectedDoc.kind === 'saved' ? selectedDoc.document.formData : null);
+    setSavedDocumentSignature(selectedDoc.kind === 'saved' ? selectedDoc.document.signatureDataUrl : '');
   }, [selectedDoc?.id]);
 
   const handleSave = async () => {
@@ -151,6 +161,59 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
 
   const handleExportPdf = () => {
     window.print();
+  };
+
+  const handleSavedDocumentFieldChange = (name: keyof DocumentForm, value: string) => {
+    setSavedDocumentDraft((current) => (current ? { ...current, [name]: value } : current));
+  };
+
+  const handleSaveSavedDocument = async () => {
+    if (!selectedDoc || selectedDoc.kind !== 'saved' || !savedDocumentDraft) {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const title =
+        savedDocumentDraft.documentType === 'personalizado'
+          ? savedDocumentDraft.customTitle || 'Documento'
+          : selectedDoc.document.title || selectedDoc.title;
+      const updated = await updatePatientDocument(selectedDoc.document.id, {
+        patientId: patient.id,
+        documentType: savedDocumentDraft.documentType,
+        title,
+        description: savedDocumentDraft.customDescription || selectedDoc.document.description || '',
+        formData: savedDocumentDraft,
+        signatureDataUrl: savedDocumentSignature,
+      });
+      setSavedDocuments((current) => current.map((document) => (document.id === updated.id ? updated : document)));
+      setEditingSavedDocument(false);
+      setSelectedKey(`saved:${updated.id}`);
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao atualizar documento.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSavedDocument = async () => {
+    if (!selectedDoc || selectedDoc.kind !== 'saved') {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      await deletePatientDocument(selectedDoc.document.id);
+      setSavedDocuments((current) => current.filter((document) => document.id !== selectedDoc.document.id));
+      setSelectedKey('');
+      setDeleteDialogVisible(false);
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao apagar documento.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -228,7 +291,21 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
             <h2 className="text-sm font-bold text-[#6A3710]">{selectedDoc.title}</h2>
             <p className="mt-1 text-sm text-[#55422f]">Salvo em {selectedDoc.subtitle}</p>
             {error ? <p className="mt-3 text-sm text-[#B42318]">{error}</p> : null}
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setEditingSavedDocument((current) => !current)}
+                className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6]"
+              >
+                {editingSavedDocument ? 'Cancelar edição' : 'Editar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteDialogVisible(true)}
+                className="rounded-md border border-[#B42318] px-4 py-2 text-sm font-semibold text-[#B42318] transition hover:bg-[#FEE4E2]"
+              >
+                Apagar
+              </button>
               <button
                 type="button"
                 onClick={handleExportPdf}
@@ -239,10 +316,40 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
             </div>
           </div>
 
-          <DocumentPreview
-            form={selectedDoc.document.formData}
-            signatureDataUrl={selectedDoc.document.signatureDataUrl}
-          />
+          {editingSavedDocument && savedDocumentDraft ? (
+            <div className="print:hidden rounded-md border border-[#D79A69] bg-white p-4">
+              <DocumentFormFields
+                form={savedDocumentDraft}
+                signatureDataUrl={savedDocumentSignature}
+                onSignatureChange={setSavedDocumentSignature}
+                onUpdateField={handleSavedDocumentFieldChange}
+              />
+              <div className="mt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingSavedDocument(false);
+                    setSavedDocumentDraft(selectedDoc.document.formData);
+                    setSavedDocumentSignature(selectedDoc.document.signatureDataUrl);
+                  }}
+                  disabled={saving}
+                  className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6] disabled:opacity-60"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSavedDocument}
+                  disabled={saving}
+                  className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#502815] disabled:opacity-60"
+                >
+                  {saving ? 'Salvando...' : 'Salvar alterações'}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <DocumentPreview form={savedDocumentDraft || selectedDoc.document.formData} signatureDataUrl={savedDocumentSignature} />
         </div>
       ) : selectedDoc?.kind === 'session' ? (
         <>
@@ -310,6 +417,44 @@ export function PatientDocsTab({ patient }: PatientDocsTabProps) {
           </article>
         </>
       ) : null}
+
+      <Dialog
+        header="Apagar documento"
+        visible={deleteDialogVisible}
+        onHide={() => {
+          if (!saving) {
+            setDeleteDialogVisible(false);
+          }
+        }}
+        
+        draggable={false}
+
+        className="mx-4 w-full max-w-md"
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setDeleteDialogVisible(false)}
+              disabled={saving}
+              className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6] disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteSavedDocument}
+              disabled={saving}
+              className="rounded-md bg-[#B42318] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8F1D14] disabled:opacity-60"
+            >
+              {saving ? 'Apagando...' : 'Apagar'}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-sm leading-6 text-[#31231A]">
+          Tem certeza que deseja apagar este documento? Essa ação não pode ser desfeita.
+        </p>
+      </Dialog>
     </div>
   );
 }

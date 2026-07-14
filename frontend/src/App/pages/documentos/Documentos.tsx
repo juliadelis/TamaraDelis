@@ -73,6 +73,7 @@ export function Documentos() {
       sessionId: '',
       patientName: patient?.fullName || '',
       patientCpf: patient?.cpf || '',
+      patientBirthDate: patient?.birthDate || '',
       firstConsultationDate: patient?.firstConsultationDate || '',
     }));
   };
@@ -88,6 +89,9 @@ export function Documentos() {
       demandDescription: current.demandDescription || session?.sessionMotives || '',
       subject: current.subject || session?.sessionTheme || initialForm.subject,
       diagnosis: current.diagnosis || session?.cid || '',
+      reimbursementDiagnosis: current.reimbursementDiagnosis || session?.cid || '',
+      firstInterviewDate: current.firstInterviewDate || (session ? dateFromIso(session.startsAt) : ''),
+      firstInterviewTime: current.firstInterviewTime || (session ? timeFromIso(session.startsAt) : ''),
     }));
   };
 

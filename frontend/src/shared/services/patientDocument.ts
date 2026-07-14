@@ -59,3 +59,28 @@ export async function savePatientDocument(payload: PatientDocumentPayload) {
   return response.json() as Promise<PatientDocument>;
 }
 
+export async function updatePatientDocument(id: string, payload: PatientDocumentPayload) {
+  const response = await fetchWithAuthRetry(`${API_URL}/api/documents/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao atualizar documento.');
+  }
+
+  return response.json() as Promise<PatientDocument>;
+}
+
+export async function deletePatientDocument(id: string) {
+  const response = await fetchWithAuthRetry(`${API_URL}/api/documents/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao apagar documento.');
+  }
+}
+

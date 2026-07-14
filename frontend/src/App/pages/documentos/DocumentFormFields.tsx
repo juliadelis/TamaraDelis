@@ -159,6 +159,7 @@ export function DocumentFormFields({
   const isAtestado = form.documentType === 'atestado';
   const isLaudo = form.documentType === 'laudo';
   const isParecer = form.documentType === 'parecer';
+  const isReembolso = form.documentType === 'reembolso';
   const isPersonalizado = form.documentType === 'personalizado';
 
   return (
@@ -167,9 +168,9 @@ export function DocumentFormFields({
       <TextField label="CPF do paciente" name="patientCpf" value={form.patientCpf} onChange={onUpdateField} />
       <TextField label="Data de emissão" name="issueDate" value={form.issueDate} onChange={onUpdateField} type="date" />
 
-      {(isAtestado || isLaudo) && (
+      {(isAtestado || isLaudo || isReembolso) && (
         <TextField
-          label="Primeira consulta"
+          label={isReembolso ? 'Inicio do tratamento' : 'Primeira consulta'}
           name="firstConsultationDate"
           value={form.firstConsultationDate}
           onChange={onUpdateField}
@@ -216,6 +217,69 @@ export function DocumentFormFields({
           <TextAreaField label="Assunto" name="subject" value={form.subject} onChange={onUpdateField} />
           <TextAreaField label="Diagnóstico / quadro clínico" name="diagnosis" value={form.diagnosis} onChange={onUpdateField} />
           <TextAreaField label="Conclusão / parecer" name="conclusion" value={form.conclusion} onChange={onUpdateField} />
+        </>
+      )}
+
+      {isReembolso && (
+        <>
+          <TextField
+            label="Data de nascimento"
+            name="patientBirthDate"
+            value={form.patientBirthDate}
+            onChange={onUpdateField}
+            type="date"
+          />
+          <TextField label="Frequencia" name="reimbursementFrequency" value={form.reimbursementFrequency} onChange={onUpdateField} />
+          <TextField
+            label="Duracao de cada sessao"
+            name="reimbursementSessionDuration"
+            value={form.reimbursementSessionDuration}
+            onChange={onUpdateField}
+          />
+          <TextField
+            label="CID-10/CID-11"
+            name="reimbursementDiagnosis"
+            value={form.reimbursementDiagnosis}
+            onChange={onUpdateField}
+          />
+          <TextField
+            label="Data do primeiro contato"
+            name="firstContactDate"
+            value={form.firstContactDate}
+            onChange={onUpdateField}
+            type="date"
+          />
+          <TextField
+            label="Data da primeira entrevista"
+            name="firstInterviewDate"
+            value={form.firstInterviewDate}
+            onChange={onUpdateField}
+            type="date"
+          />
+          <TextField
+            label="Horario da primeira entrevista"
+            name="firstInterviewTime"
+            value={form.firstInterviewTime}
+            onChange={onUpdateField}
+          />
+          <TextField
+            label="Convenio"
+            name="reimbursementInsurance"
+            value={form.reimbursementInsurance}
+            onChange={onUpdateField}
+          />
+          <TextField
+            label="Valor por sessao"
+            name="reimbursementSessionPrice"
+            value={form.reimbursementSessionPrice}
+            onChange={onUpdateField}
+          />
+          <TextField
+            label="Valor por extenso"
+            name="reimbursementSessionPriceWords"
+            value={form.reimbursementSessionPriceWords}
+            onChange={onUpdateField}
+          />
         </>
       )}
 
