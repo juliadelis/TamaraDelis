@@ -125,9 +125,14 @@ router.get('/monthly', async (req, res) => {
       sessionDetails: [],
     };
 
-    const expectedAmount = Number(session.session_price ?? 0);
+    const expectedAmount =
+      session.status === 'missed'
+        ? session.payment_status === 'cancelled'
+          ? 0
+          : Number(session.paid_amount ?? (session.session_price ?? 0) * 0.5)
+        : Number(session.session_price ?? 0);
     const receivedAmount =
-      session.status === 'completed' && session.payment_status === 'paid'
+      (session.status === 'completed' || session.status === 'missed') && session.payment_status === 'paid'
         ? Number(session.paid_amount ?? session.session_price ?? 0)
         : 0;
 

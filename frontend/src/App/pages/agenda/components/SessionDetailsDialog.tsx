@@ -95,6 +95,15 @@ function formatRescheduleTag(value: string) {
   })}`;
 }
 
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
+
+function formatCurrency(value: number | null) {
+  return value === null || Number.isNaN(value) ? '-' : currencyFormatter.format(value);
+}
+
 function buildPayload(
   session: PatientSession,
   updates: Partial<PatientSessionPayload>
@@ -157,6 +166,8 @@ export function SessionDetailsDialog({
 
   const currentMeta = STATUS_META[status];
   const showCompletedFields = status === 'completed';
+  const showMissedFields = status === 'missed';
+  const missedFeeAmount = session?.sessionPrice === null || session?.sessionPrice === undefined ? null : session.sessionPrice * 0.5;
   const isRecurringSession = Boolean(session?.recurrenceGroupId);
   const patientInitial = useMemo(
     () => session?.patientName?.trim().charAt(0).toUpperCase() || 'S',
@@ -182,7 +193,11 @@ export function SessionDetailsDialog({
         ? session.status === 'completed'
           ? session.paymentStatus || 'paid'
           : 'paid'
-        : session.paymentStatus || 'pending'
+        : nextStatus === 'missed'
+          ? session.status === 'missed'
+            ? session.paymentStatus || 'cancelled'
+            : 'cancelled'
+          : session.paymentStatus || 'pending'
     );
     setPaymentMethod(session.paymentMethod || 'pix');
     setRescheduling(false);
@@ -213,9 +228,10 @@ export function SessionDetailsDialog({
     setPaymentMethod((current) => current || 'pix');
   };
 
-  const handleMissed = async () => {
+  const handleMissed = () => {
     setStatus('missed');
-    await persist({ status: 'missed', notes });
+    setPaymentStatus(session?.status === 'missed' ? session.paymentStatus || 'cancelled' : 'cancelled');
+    setPaymentMethod((current) => current || 'pix');
   };
 
   const handleReschedule = () => {
@@ -249,8 +265,8 @@ export function SessionDetailsDialog({
       moodScale: showCompletedFields ? moodScale : session.moodScale,
       anxietyScale: showCompletedFields ? anxietyScale : session.anxietyScale,
       recurrentThemes: showCompletedFields ? theme : session.recurrentThemes,
-      paymentStatus: showCompletedFields ? paymentStatus : session.paymentStatus,
-      paymentMethod: showCompletedFields && paymentStatus === 'paid' ? paymentMethod : '',
+      paymentStatus: showCompletedFields || showMissedFields ? paymentStatus : session.paymentStatus,
+      paymentMethod: (showCompletedFields || showMissedFields) && paymentStatus === 'paid' ? paymentMethod : '',
       rescheduledFromStartsAt: rescheduling ? session.startsAt : session.rescheduledFromStartsAt,
       rescheduledFromEndsAt: rescheduling ? session.endsAt : session.rescheduledFromEndsAt,
     });
@@ -460,6 +476,50 @@ export function SessionDetailsDialog({
                 placeholder="Digitar..."
               />
             </>
+          ) : null}
+
+          {showMissedFields ? (
+            <div className="mb-5 rounded-md border border-[#D8C0A3] bg-[#FFF8ED] p-4">
+              <h3 className="text-sm font-bold text-[#3A1C0B]">Taxa de falta</h3>
+              <p className="mt-1 text-sm text-[#55422f]">
+                Valor de 50% da sessao: <span className="font-semibold">{formatCurrency(missedFeeAmount)}</span>
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <label className="text-sm font-bold text-[#111111]">
+                  Taxa de falta
+                  <select
+                    value={paymentStatus}
+                    onChange={(event) => {
+                      const nextStatus = event.target.value as PaymentStatus;
+                      setPaymentStatus(nextStatus);
+                      if (nextStatus === 'paid') {
+                        setPaymentMethod((current) => current || 'pix');
+                      }
+                    }}
+                    className="mt-1 w-full rounded border border-[#6A3710] bg-white px-3 py-2 text-sm font-normal"
+                  >
+                    <option value="cancelled">Nao cobrar</option>
+                    <option value="pending">Cobrar 50% - nao pago</option>
+                    <option value="paid">Cobrar 50% - pago</option>
+                  </select>
+                </label>
+
+                {paymentStatus === 'paid' ? (
+                  <label className="text-sm font-bold text-[#111111]">
+                    Metodo de pagamento
+                    <select
+                      value={paymentMethod}
+                      onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)}
+                      className="mt-1 w-full rounded border border-[#6A3710] bg-white px-3 py-2 text-sm font-normal"
+                    >
+                      <option value="pix">Pix</option>
+                      <option value="cash">Dinheiro</option>
+                    </select>
+                  </label>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
           {confirmingDelete ? (

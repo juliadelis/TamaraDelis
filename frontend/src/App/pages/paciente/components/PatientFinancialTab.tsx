@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PatientFinancialSummary } from '../../../../shared/models/finance.model';
 import type { PatientRecord } from '../../../../shared/models/patient.model';
-import type { PatientSession } from '../../../../shared/models/session.model';
+import { SESSION_STATUS_LABEL, type PatientSession } from '../../../../shared/models/session.model';
 import { getPatientFinancialSummary } from '../../../../shared/services/finance';
 import { deleteSession, getSession, type DeleteSessionScope } from '../../../../shared/services/session';
 import { SessionDetailsDialog } from '../../agenda/components/SessionDetailsDialog';
@@ -32,6 +32,26 @@ function formatDate(value = '') {
 function formatPaymentMethod(value = '') {
   if (value === 'pix') return 'Pix';
   if (value === 'cash') return 'Dinheiro';
+  return '-';
+}
+
+function statusClass(value = '') {
+  return value === 'missed' ? 'font-semibold text-[#B42318]' : 'text-[#8A6A4F]';
+}
+
+function formatPaidColumn(session: PatientFinancialSummary['sessions'][number]) {
+  if (session.paymentStatus === 'paid') {
+    return formatCurrency(session.paidAmount);
+  }
+
+  if (session.status === 'missed' && session.paymentStatus === 'cancelled') {
+    return 'Nao cobrado';
+  }
+
+  if (session.status === 'missed' && session.paymentStatus === 'pending') {
+    return 'Nao pago';
+  }
+
   return '-';
 }
 
@@ -124,8 +144,9 @@ export function PatientFinancialTab({ patient }: PatientFinancialTabProps) {
           </p>
         ) : (
           <div className="overflow-hidden rounded-sm">
-            <div className="grid grid-cols-4 bg-white px-3 py-2 text-xs font-bold text-[#111111]">
+            <div className="grid grid-cols-5 bg-white px-3 py-2 text-xs font-bold text-[#111111]">
               <span>Data</span>
+              <span>Status</span>
               <span>Valor</span>
               <span>Pago</span>
               <span>Metodo</span>
@@ -136,15 +157,16 @@ export function PatientFinancialTab({ patient }: PatientFinancialTabProps) {
                 type="button"
                 onClick={() => handleOpenSessionDetails(session.id)}
                 disabled={loadingSessionId === session.id}
-                className={`grid w-full grid-cols-4 px-3 py-2 text-left text-xs text-[#111111] transition hover:bg-[#F5E0C6] disabled:cursor-wait disabled:opacity-70 ${
+                className={`grid w-full grid-cols-5 px-3 py-2 text-left text-xs text-[#111111] transition hover:bg-[#F5E0C6] disabled:cursor-wait disabled:opacity-70 ${
                   index % 2 === 0 ? 'bg-[#FFF8ED]' : 'bg-white'
                 }`}
                 aria-label={`Ver detalhes da sessao de ${formatDate(session.startsAt)}`}
               >
                 <span>{loadingSessionId === session.id ? 'Carregando...' : formatDate(session.startsAt)}</span>
+                <span className={statusClass(session.status)}>{SESSION_STATUS_LABEL[session.status]}</span>
                 <span>{formatCurrency(session.sessionPrice)}</span>
                 <span className={session.paymentStatus === 'paid' ? 'font-semibold text-[#2BA64B]' : 'text-[#8A6A4F]'}>
-                  {session.paymentStatus === 'paid' ? formatCurrency(session.paidAmount) : '-'}
+                  {formatPaidColumn(session)}
                 </span>
                 <span>{session.paymentStatus === 'paid' ? formatPaymentMethod(session.paymentMethod) : '-'}</span>
               </button>

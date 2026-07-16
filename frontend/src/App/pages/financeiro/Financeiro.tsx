@@ -59,6 +59,26 @@ function formatPaymentStatus(value = '') {
   return 'Esperado';
 }
 
+function formatSessionStatus(value = '') {
+  if (value === 'missed') return 'Falta';
+  if (value === 'completed') return 'Realizada';
+  if (value === 'scheduled') return 'Agendada';
+  if (value === 'rescheduled') return 'Remarcada';
+  if (value === 'cancelled') return 'Cancelada';
+  return 'Sessao';
+}
+
+function formatSessionPaymentSummary(
+  session: MonthlyFinancialSummary['patients'][number]['sessionDetails'][number]
+) {
+  if (session.status === 'missed') {
+    if (session.paymentStatus === 'cancelled') return 'Nao cobrado';
+    if (session.paymentStatus === 'pending') return 'Nao pago';
+  }
+
+  return formatPaymentStatus(session.paymentStatus);
+}
+
 function normalizeSearch(value = '') {
   return value
     .normalize('NFD')
@@ -382,7 +402,7 @@ export function Financeiro() {
                       {loadingSessionId === session.id ? 'Carregando...' : session.title || 'Sessão'}
                     </p>
                     <p className="text-[#8A6A4F]">
-                      {formatPaymentStatus(session.paymentStatus)}
+                      {formatSessionStatus(session.status)} - {formatSessionPaymentSummary(session)}
                       {session.paymentStatus === 'paid' ? ` - ${formatPaymentMethod(session.paymentMethod)}` : ''}
                     </p>
                   </div>

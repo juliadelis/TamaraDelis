@@ -242,6 +242,27 @@ async function applyPaymentAutomation(
     };
   }
 
+  if (payload.status === 'missed') {
+    const selectedPaymentStatus =
+      payload.payment_status === 'paid' || payload.payment_status === 'pending' ? payload.payment_status : 'cancelled';
+    const selectedPaymentMethod = selectedPaymentStatus === 'paid' ? payload.payment_method || existing?.payment_method || 'pix' : null;
+    const missedFeeAmount = sessionPrice === null ? null : Number((sessionPrice * 0.5).toFixed(2));
+
+    return {
+      ...payload,
+      session_price: sessionPrice,
+      payment_status: selectedPaymentStatus,
+      payment_method: selectedPaymentMethod,
+      paid_at:
+        selectedPaymentStatus === 'paid'
+          ? existing?.payment_status === 'paid' && existing.paid_at
+            ? existing.paid_at
+            : new Date().toISOString()
+          : null,
+      paid_amount: selectedPaymentStatus === 'paid' ? missedFeeAmount : null,
+    };
+  }
+
   return {
     ...payload,
     session_price: sessionPrice,
