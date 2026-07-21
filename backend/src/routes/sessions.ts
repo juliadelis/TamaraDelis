@@ -11,6 +11,7 @@ export type SessionStatus = 'scheduled' | 'completed' | 'cancelled' | 'missed' |
 type PaymentStatus = 'pending' | 'paid' | 'cancelled';
 type PaymentMethod = 'pix' | 'cash';
 type SessionRecurrenceType = 'none' | 'monthly' | 'biweekly' | 'weekly' | 'twiceWeekly';
+type SessionModality = 'online' | 'in_person';
 
 type SessionRow = {
   id: string;
@@ -101,6 +102,10 @@ function recurrenceType(value: unknown): SessionRecurrenceType {
     : 'none';
 }
 
+function sessionModality(value: unknown): SessionModality {
+  return text(value) === 'in_person' ? 'in_person' : 'online';
+}
+
 function rowToSession(row: SessionRow) {
   return {
     id: row.id,
@@ -114,7 +119,7 @@ function rowToSession(row: SessionRow) {
     endsAt: row.ends_at,
     timezone: row.timezone || 'America/Sao_Paulo',
     status: row.status || 'scheduled',
-    type: row.type || '',
+    type: sessionModality(row.type),
     location: row.location || '',
     notes: row.notes || '',
     clinicalNotes: row.clinical_notes || '',
@@ -163,7 +168,7 @@ function requestToRow(body: Record<string, unknown>, userId: string) {
     ends_at: text(body.endsAt),
     timezone: text(body.timezone) || 'America/Sao_Paulo',
     status,
-    type: text(body.type) || null,
+    type: sessionModality(body.type),
     location: text(body.location) || null,
     notes: text(body.notes) || null,
     clinical_notes: text(body.clinicalNotes) || null,
@@ -275,13 +280,32 @@ async function applyPaymentAutomation(
 
 async function shouldSyncGoogle(userId: string, requestedSync: unknown) {
   const explicitlyRequested = requestedSync === true || requestedSync === 'true';
+  if (!explicitlyRequested) {
+    return false;
+  }
   const googleStatus = await getGoogleCalendarConnectionStatus(userId);
 
   if (explicitlyRequested && !googleStatus.connected) {
     throw new Error('Google Agenda não conectado. Entre com Google novamente e autorize o acesso ao calendario.');
   }
 
-  return googleStatus.connected;
+  return true;
+}
+
+async function validateOnlinePatientEmail(patientId: string) {
+  const { data, error } = await supabase
+    .from('patients')
+    .select('email')
+    .eq('id', patientId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!String(data?.email || '').trim()) {
+    throw new Error('Cadastre o e-mail do paciente antes de criar uma sessao online.');
+  }
 }
 
 const router = Router();
@@ -373,7 +397,10 @@ router.post('/', async (req, res) => {
 
   let syncGoogle = false;
   try {
-    syncGoogle = await shouldSyncGoogle(userId, req.body.syncGoogle);
+    syncGoogle = await shouldSyncGoogle(userId, payload.type === 'online');
+    if (syncGoogle) {
+      await validateOnlinePatientEmail(payload.patient_id);
+    }
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }
@@ -407,14 +434,17 @@ router.put('/:id', async (req, res) => {
 
   let syncGoogle = false;
   try {
-    syncGoogle = await shouldSyncGoogle(userId, req.body.syncGoogle);
+    syncGoogle = await shouldSyncGoogle(userId, payload.type === 'online');
+    if (syncGoogle) {
+      await validateOnlinePatientEmail(payload.patient_id);
+    }
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }
 
   const { data: existing, error: existingError } = await supabase
     .from('patient_sessions')
-    .select('payment_status, payment_method, paid_at, paid_amount, session_price')
+    .select('*')
     .eq('id', req.params.id)
     .eq('user_id', userId)
     .single();
@@ -423,9 +453,31 @@ router.put('/:id', async (req, res) => {
     return res.status(existingError.code === 'PGRST116' ? 404 : 500).json({ error: existingError.message });
   }
 
+  const existingSession = existing as SessionRow;
+  if (payload.type === 'in_person' && existingSession.google_event_id) {
+    try {
+      await deleteGoogleCalendarEvent(userId, existingSession, 'none');
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
+  const updatePayload = await applyPaymentAutomation(payload, existingSession);
+  const sessionUpdate =
+    payload.type === 'in_person'
+      ? {
+          ...updatePayload,
+          google_event_id: null,
+          google_calendar_id: null,
+          google_meet_link: null,
+          google_sync_status: null,
+          google_last_synced_at: null,
+        }
+      : updatePayload;
+
   const { data, error } = await supabase
     .from('patient_sessions')
-    .update(await applyPaymentAutomation(payload, existing as SessionRow))
+    .update(sessionUpdate)
     .eq('id', req.params.id)
     .eq('user_id', userId)
     .select('*, patients(full_name, email)')

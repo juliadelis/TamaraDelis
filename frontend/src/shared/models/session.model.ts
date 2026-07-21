@@ -2,6 +2,7 @@ export type SessionStatus = 'scheduled' | 'completed' | 'cancelled' | 'missed' |
 export type PaymentStatus = 'pending' | 'paid' | 'cancelled';
 export type PaymentMethod = 'pix' | 'cash';
 export type SessionRecurrenceType = 'none' | 'monthly' | 'biweekly' | 'weekly' | 'twiceWeekly';
+export type SessionModality = 'online' | 'in_person';
 
 export interface PatientSession {
   id: string;
@@ -15,7 +16,7 @@ export interface PatientSession {
   endsAt: string;
   timezone: string;
   status: SessionStatus;
-  type: string;
+  type: SessionModality;
   location: string;
   notes: string;
   clinicalNotes: string;
@@ -53,7 +54,7 @@ export type PatientSessionPayload = {
   endsAt: string;
   timezone: string;
   status: SessionStatus;
-  type?: string;
+  type?: SessionModality;
   location?: string;
   notes?: string;
   clinicalNotes?: string;

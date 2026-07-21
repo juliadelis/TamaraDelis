@@ -5,6 +5,7 @@ import type { PatientRecord } from '../../../../shared/models/patient.model';
 import type {
   PatientSession,
   PatientSessionPayload,
+  SessionModality,
   SessionRecurrenceType,
   SessionStatus,
 } from '../../../../shared/models/session.model';
@@ -189,7 +190,7 @@ export function SessionFormDialog({
   const [sessionTheme, setSessionTheme] = useState(session?.sessionTheme || '');
   const [sessionMotives, setSessionMotives] = useState(session?.sessionMotives || '');
   const [notes, setNotes] = useState(session?.notes || '');
-  const [syncGoogle, setSyncGoogle] = useState(Boolean(session?.googleEventId));
+  const [modality, setModality] = useState<SessionModality>(session?.type || 'online');
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleEmail, setGoogleEmail] = useState('');
   const [checkingGoogle, setCheckingGoogle] = useState(false);
@@ -225,9 +226,6 @@ export function SessionFormDialog({
         const status = await getGoogleCalendarStatus();
         setGoogleConnected(status.connected);
         setGoogleEmail(status.googleEmail);
-        if (status.connected && !session?.googleEventId) {
-          setSyncGoogle(true);
-        }
       } catch {
         setGoogleConnected(false);
       } finally {
@@ -261,8 +259,13 @@ export function SessionFormDialog({
       return;
     }
 
-    if (syncGoogle && !googleConnected) {
+    if (modality === 'online' && !googleConnected) {
       setError('Conecte o Google Agenda antes de sincronizar a sessão.');
+      return;
+    }
+
+    if (modality === 'online' && !selectedPatient.email?.trim()) {
+      setError('Cadastre o e-mail do paciente antes de criar uma sessão online.');
       return;
     }
 
@@ -293,6 +296,7 @@ export function SessionFormDialog({
       endsAt: fromLocalInputValue(endsAt),
       timezone: 'America/Sao_Paulo',
       status,
+      type: modality,
       cid,
       sessionTheme,
       sessionMotives,
@@ -304,7 +308,7 @@ export function SessionFormDialog({
       recurrenceGroupId,
       recurrenceType: recurrence,
       notes,
-      syncGoogle,
+      syncGoogle: modality === 'online',
     };
 
     setSaving(true);
@@ -383,6 +387,18 @@ export function SessionFormDialog({
             />
           </label>
         ) : null}
+
+        <label className="text-sm font-medium text-[#502815]">
+          Modalidade
+          <select
+            value={modality}
+            onChange={(event) => setModality(event.target.value as SessionModality)}
+            className="mt-1 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+          >
+            <option value="online">Online</option>
+            <option value="in_person">Presencial</option>
+          </select>
+        </label>
 
         <label className="text-sm font-medium text-[#502815] sm:col-span-2">
           Titulo
@@ -463,6 +479,8 @@ export function SessionFormDialog({
           </select>
         </label>
 
+        
+
         {recurrence !== 'none' ? (
           <label className="text-sm font-medium text-[#502815]">
             Data final
@@ -502,22 +520,15 @@ export function SessionFormDialog({
           />
         </label>
 
+        {modality === 'online' ? (
         <div className="rounded-md border border-[#D9D3CE] p-3 sm:col-span-2">
-          <label className="flex items-center gap-2 text-sm font-medium text-[#502815]">
-            <input
-              type="checkbox"
-              checked={syncGoogle}
-              disabled={!googleConnected}
-              onChange={(event) => setSyncGoogle(event.target.checked)}
-            />
-            Sincronizar com Google Agenda
-          </label>
+          <p className="text-sm font-medium text-[#502815]">Google Agenda e convite por e-mail</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-[#6A3710]">
               {checkingGoogle
                 ? 'Verificando conexao...'
                 : googleConnected
-                ? `Conectado${googleEmail ? ` em ${googleEmail}` : ''}`
+                ? `O link do Google Meet e o convite para ${selectedPatient?.email || 'o paciente'} serão criados automaticamente${googleEmail ? ` por ${googleEmail}` : ''}.`
                 : 'Google Agenda ainda não conectado.'}
             </p>
             {!googleConnected ? (
@@ -532,6 +543,11 @@ export function SessionFormDialog({
             ) : null}
           </div>
         </div>
+        ) : (
+          <div className="rounded-md border border-[#D9D3CE] bg-[#FFF8ED] p-3 text-xs text-[#6A3710] sm:col-span-2">
+            Sessão presencial: não será criado evento, link do Google Meet ou notificação para o paciente.
+          </div>
+        )}
 
         {error ? <p className="text-sm text-[#B42318] sm:col-span-2">{error}</p> : null}
       </div>

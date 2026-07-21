@@ -263,6 +263,10 @@ export async function upsertGoogleCalendarEvent(userId: string, session: Session
 
   const calendarId = session.google_calendar_id || connection.calendar_id || 'primary';
   const patientName = session.patients?.full_name || 'Paciente';
+  const patientEmail = session.patients?.email?.trim();
+  if (!patientEmail) {
+    throw new Error('Cadastre o e-mail do paciente antes de criar uma sessao online.');
+  }
   const title = session.title || `Sessão - ${patientName}`;
 
   const eventBody = {
@@ -277,7 +281,7 @@ export async function upsertGoogleCalendarEvent(userId: string, session: Session
       dateTime: session.ends_at,
       timeZone: session.timezone || 'America/Sao_Paulo',
     },
-    attendees: session.patients?.email ? [{ email: session.patients.email }] : undefined,
+    attendees: [{ email: patientEmail }],
     extendedProperties: {
       private: {
         patientSessionId: session.id,
@@ -318,7 +322,11 @@ export async function upsertGoogleCalendarEvent(userId: string, session: Session
   });
 }
 
-export async function deleteGoogleCalendarEvent(userId: string, session: SessionRow) {
+export async function deleteGoogleCalendarEvent(
+  userId: string,
+  session: SessionRow,
+  sendUpdates: 'all' | 'none' = 'all'
+) {
   const connection = await getConnection(userId);
   const calendarId = session.google_calendar_id || connection?.calendar_id || 'primary';
 
@@ -328,7 +336,7 @@ export async function deleteGoogleCalendarEvent(userId: string, session: Session
 
   const path = `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(
     session.google_event_id
-  )}?${new URLSearchParams({ sendUpdates: 'all' }).toString()}`;
+  )}?${new URLSearchParams({ sendUpdates }).toString()}`;
 
   await googleRequest(connection, path, {
     method: 'DELETE',
