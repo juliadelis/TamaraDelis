@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getPatientRecord } from '../../../shared/services/patient';
 import { savePatientDocument } from '../../../shared/services/patientDocument';
 import { getSessions } from '../../../shared/services/session';
+import { PatientSelect } from '../../../shared/components/PatientSelect/PatientSelect';
 import type { PatientRecord } from '../../../shared/models/patient.model';
 import type { PatientSession } from '../../../shared/models/session.model';
 import { DocumentFormFields } from './DocumentFormFields';
@@ -181,18 +182,13 @@ export function Documentos() {
 
             <label className="block text-sm font-semibold text-[#502815]">
               Paciente
-              <select
+              <PatientSelect
                 value={form.patientId}
-                onChange={(event) => handlePatientChange(event.target.value)}
-                className="mt-1 w-full rounded-md border border-[#D8C0A3] bg-white px-3 py-2 text-sm text-[#111111] outline-none focus:border-[#6A3710]"
-              >
-                <option value="">{loadingPatients ? 'Carregando pacientes...' : 'Selecione um paciente'}</option>
-                {patients.map((patient) => (
-                  <option key={patient.id} value={patient.id}>
-                    {patient.fullName}
-                  </option>
-                ))}
-              </select>
+                onChange={handlePatientChange}
+                patients={patients}
+                loading={loadingPatients}
+                className="mt-1 border-[#D8C0A3] focus-within:border-[#6A3710]"
+              />
             </label>
 
             <label className="block text-sm font-semibold text-[#502815]">

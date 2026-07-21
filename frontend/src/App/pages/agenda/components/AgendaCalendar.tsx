@@ -34,6 +34,7 @@ export const AgendaCalendar = ({
   onMonthChange,
   onYearChange,
 }: AgendaCalendarProps) => {
+  const today = new Date();
   const firstDayIndex = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const totalCells = Math.ceil((firstDayIndex + daysInMonth) / 7) * 7;
@@ -106,6 +107,12 @@ export const AgendaCalendar = ({
       <div className="mt-3 grid grid-cols-7 gap-3">
         {cells.map((cell, index) => {
           const hasSchedule = cell.date ? scheduleDays.includes(cell.date.getDate()) : false;
+          const isToday = Boolean(
+            cell.date &&
+              cell.date.getFullYear() === today.getFullYear() &&
+              cell.date.getMonth() === today.getMonth() &&
+              cell.date.getDate() === today.getDate()
+          );
 
           return (
             <button
@@ -113,9 +120,12 @@ export const AgendaCalendar = ({
               type="button"
               disabled={!cell.isCurrentMonth}
               onClick={() => cell.date && onSelectDate(cell.date)}
+              aria-current={isToday ? 'date' : undefined}
               className={`h-10 rounded text-sm font-semibold transition duration-200 focus:outline-none ${
                 cell.isCurrentMonth
-                  ? hasSchedule
+                  ? isToday
+                    ? 'bg-[#E87524] text-white shadow-sm hover:bg-[#D96517]'
+                    : hasSchedule
                     ? 'bg-[#6A3710] text-white hover:bg-[#7f4d2b]'
                     : 'bg-white text-[#1E1E1E] hover:bg-[#F2E8DE]'
                   : 'bg-transparent text-transparent cursor-default'

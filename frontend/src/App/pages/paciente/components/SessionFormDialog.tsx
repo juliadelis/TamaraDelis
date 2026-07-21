@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
+import { PatientSelect } from '../../../../shared/components/PatientSelect/PatientSelect';
 import type { PatientRecord } from '../../../../shared/models/patient.model';
 import type {
   PatientSession,
@@ -374,18 +375,12 @@ export function SessionFormDialog({
         {!patient ? (
           <label className="text-sm font-medium text-[#502815] sm:col-span-2">
             Paciente
-            <select
+            <PatientSelect
               value={selectedPatientId}
-              onChange={(event) => setSelectedPatientId(event.target.value)}
-              className="mt-1 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
-            >
-              <option value="">Selecione um paciente</option>
-              {patients.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.fullName}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedPatientId}
+              patients={patients}
+              className="mt-1 border-[#D9D3CE]"
+            />
           </label>
         ) : null}
 

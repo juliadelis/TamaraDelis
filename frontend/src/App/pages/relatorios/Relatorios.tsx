@@ -5,6 +5,7 @@ import { getPatientRecord } from '../../../shared/services/patient';
 import { deleteSession, getSessions, type DeleteSessionScope } from '../../../shared/services/session';
 import { SessionDetailsDialog } from '../agenda/components/SessionDetailsDialog';
 import { SessionFormDialog } from '../paciente/components/SessionFormDialog';
+import { PatientSelect } from '../../../shared/components/PatientSelect/PatientSelect';
 
 function formatInputDate(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -126,18 +127,13 @@ export function Relatorios() {
 
           <label className="text-sm font-semibold text-[#502815]">
             Paciente
-            <select
+            <PatientSelect
               value={selectedPatientId}
-              onChange={(event) => setSelectedPatientId(event.target.value)}
-              className="mt-1 block w-full rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm font-semibold text-[#502815] outline-none"
-            >
-              <option value="">Todos os pacientes</option>
-              {patients.map((patient) => (
-                <option key={patient.id} value={patient.id}>
-                  {patient.fullName}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedPatientId}
+              patients={patients}
+              placeholder="Todos os pacientes"
+              className="mt-1 border-[#D79A69] font-semibold text-[#502815]"
+            />
           </label>
         </div>
 
