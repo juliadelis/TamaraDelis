@@ -88,16 +88,7 @@ export const Paciente = () => {
       const patientTags = patient.frequentTags || [];
       const matchesSearch =
         !searchTerm ||
-        normalize(
-          [
-            patient.fullName,
-            patient.email,
-            patient.phone,
-            patient.profession,
-            patient.city,
-            ...patientTags,
-          ].join(' ')
-        ).includes(searchTerm);
+        normalize(patient.fullName.trimStart()).startsWith(searchTerm);
 
       const matchesTags =
         activeTags.length === 0 ||
