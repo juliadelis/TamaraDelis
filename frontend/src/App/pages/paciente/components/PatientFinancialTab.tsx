@@ -36,10 +36,13 @@ function formatPaymentMethod(value = '') {
 }
 
 function statusClass(value = '') {
-  return value === 'missed' ? 'font-semibold text-[#B42318]' : 'text-[#8A6A4F]';
+  return value === 'missed' || value === 'cancelled' ? 'font-semibold text-[#B42318]' : 'text-[#8A6A4F]';
 }
 
 function formatPaidColumn(session: PatientFinancialSummary['sessions'][number]) {
+  if (session.status === 'cancelled') {
+    return formatCurrency(0);
+  }
   if (session.paymentStatus === 'paid') {
     return formatCurrency(session.paidAmount);
   }
@@ -164,7 +167,7 @@ export function PatientFinancialTab({ patient }: PatientFinancialTabProps) {
               >
                 <span>{loadingSessionId === session.id ? 'Carregando...' : formatDate(session.startsAt)}</span>
                 <span className={statusClass(session.status)}>{SESSION_STATUS_LABEL[session.status]}</span>
-                <span>{formatCurrency(session.sessionPrice)}</span>
+                <span>{formatCurrency(session.status === 'cancelled' ? 0 : session.sessionPrice)}</span>
                 <span className={session.paymentStatus === 'paid' ? 'font-semibold text-[#2BA64B]' : 'text-[#8A6A4F]'}>
                   {formatPaidColumn(session)}
                 </span>

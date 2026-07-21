@@ -62,7 +62,7 @@ export async function getMonthlyFinancialSummary(year: number, month: number) {
     >();
 
     sessions.forEach((session) => {
-      if (session.status === 'cancelled' || session.status === 'rescheduled') {
+      if (session.status === 'rescheduled') {
         return;
       }
 
@@ -80,7 +80,7 @@ export async function getMonthlyFinancialSummary(year: number, month: number) {
         sessionDetails: [],
       };
 
-      const expectedAmount = session.sessionPrice ?? 0;
+      const expectedAmount = session.status === 'cancelled' ? 0 : session.sessionPrice ?? 0;
       const receivedAmount =
         session.status === 'completed' && session.paymentStatus === 'paid'
           ? session.paidAmount ?? session.sessionPrice ?? 0

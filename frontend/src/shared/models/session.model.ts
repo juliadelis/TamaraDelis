@@ -77,7 +77,7 @@ export type PatientSessionPayload = {
 export const SESSION_STATUS_LABEL: Record<SessionStatus, string> = {
   scheduled: 'Agendada',
   completed: 'Realizada',
-  cancelled: 'Cancelada',
+  cancelled: 'Cancelamento',
   missed: 'Falta',
   rescheduled: 'Remarcada',
 };

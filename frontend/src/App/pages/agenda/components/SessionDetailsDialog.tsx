@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
-import { FiArrowLeft, FiCheck, FiRefreshCw, FiVideo, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiRefreshCw, FiSlash, FiVideo, FiX } from 'react-icons/fi';
 import type {
   PatientSession,
   PatientSessionPayload,
@@ -46,9 +46,9 @@ const STATUS_META: Record<SessionStatus, { label: string; chip: string; text: st
     text: 'text-[#9647FF]',
   },
   cancelled: {
-    label: 'Cancelada',
-    chip: 'border-[#E10415] bg-[#FEE4E6]',
-    text: 'text-[#E10415]',
+    label: 'Cancelamento',
+    chip: 'border-[#B95B24] bg-[#FFF0E5]',
+    text: 'text-[#B95B24]',
   },
 };
 
@@ -224,12 +224,14 @@ export function SessionDetailsDialog({
 
   const handlePresent = () => {
     setStatus('completed');
+    setRescheduling(false);
     setPaymentStatus('paid');
     setPaymentMethod((current) => current || 'pix');
   };
 
   const handleMissed = () => {
     setStatus('missed');
+    setRescheduling(false);
     setPaymentStatus(session?.status === 'missed' ? session.paymentStatus || 'cancelled' : 'cancelled');
     setPaymentMethod((current) => current || 'pix');
   };
@@ -237,6 +239,12 @@ export function SessionDetailsDialog({
   const handleReschedule = () => {
     setStatus('rescheduled');
     setRescheduling(true);
+  };
+
+  const handleCancellation = () => {
+    setStatus('cancelled');
+    setPaymentStatus('cancelled');
+    setRescheduling(false);
   };
 
   const handleSave = async () => {
@@ -370,15 +378,26 @@ export function SessionDetailsDialog({
                     Falta
                   </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleReschedule}
-                  disabled={saving}
-                  className="inline-flex items-center justify-center gap-2 rounded-md border border-[#9647FF] bg-[#F3ECFF] px-4 py-2 text-sm font-bold text-[#9647FF]"
-                >
-                  <FiRefreshCw />
-                  Reagendar
-                </button>
+                <div className="grid grid-cols-2 gap-6">
+                  <button
+                    type="button"
+                    onClick={handleReschedule}
+                    disabled={saving}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-[#9647FF] bg-[#F3ECFF] px-4 py-2 text-sm font-bold text-[#9647FF]"
+                  >
+                    <FiRefreshCw />
+                    Reagendar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancellation}
+                    disabled={saving}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-[#B95B24] bg-[#FFF0E5] px-4 py-2 text-sm font-bold text-[#B95B24]"
+                  >
+                    <FiSlash />
+                    Cancelamento
+                  </button>
+                </div>
               </div>
             )}
           </div>

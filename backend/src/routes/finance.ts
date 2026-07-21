@@ -106,7 +106,7 @@ router.get('/monthly', async (req, res) => {
   >();
 
   ((data || []) as unknown as MonthlySessionFinanceRow[]).forEach((session) => {
-    if (session.status === 'cancelled' || session.status === 'rescheduled') {
+    if (session.status === 'rescheduled') {
       return;
     }
 
@@ -126,7 +126,9 @@ router.get('/monthly', async (req, res) => {
     };
 
     const expectedAmount =
-      session.status === 'missed'
+      session.status === 'cancelled'
+        ? 0
+        : session.status === 'missed'
         ? session.payment_status === 'cancelled'
           ? 0
           : Number(session.paid_amount ?? (session.session_price ?? 0) * 0.5)

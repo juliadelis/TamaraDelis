@@ -28,7 +28,7 @@ const statusOptions: { value: SessionStatus; label: string }[] = [
   { value: 'completed', label: 'Realizada' },
   { value: 'rescheduled', label: 'Remarcada' },
   { value: 'missed', label: 'Falta' },
-  { value: 'cancelled', label: 'Cancelada' },
+  { value: 'cancelled', label: 'Cancelamento' },
 ];
 
 const recurrenceOptions: { value: SessionRecurrenceType; label: string }[] = [

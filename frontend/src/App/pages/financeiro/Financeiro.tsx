@@ -64,7 +64,7 @@ function formatSessionStatus(value = '') {
   if (value === 'completed') return 'Realizada';
   if (value === 'scheduled') return 'Agendada';
   if (value === 'rescheduled') return 'Remarcada';
-  if (value === 'cancelled') return 'Cancelada';
+  if (value === 'cancelled') return 'Cancelamento';
   return 'Sessao';
 }
 
@@ -407,7 +407,7 @@ export function Financeiro() {
                     </p>
                   </div>
                   <span className="text-right font-semibold">
-                    {session.paymentStatus === 'paid' ? formatCurrency(session.receivedAmount) : '-'}
+                    {formatCurrency(session.receivedAmount)}
                   </span>
                   <span className="text-right font-semibold">{formatCurrency(session.expectedAmount)}</span>
                 </button>
