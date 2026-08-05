@@ -3,7 +3,11 @@ import { Dialog } from 'primereact/dialog';
 import { Link } from 'react-router-dom';
 import type { MonthlyFinancialSummary } from '../../../shared/models/finance.model';
 import type { PatientSession } from '../../../shared/models/session.model';
-import { getMonthlyFinancialSummary } from '../../../shared/services/finance';
+import {
+  getMonthlyFinancialSummary,
+  markPatientMonthAsPaid,
+  savePatientMonthlyNotes,
+} from '../../../shared/services/finance';
 import { deleteSession, getSession, type DeleteSessionScope } from '../../../shared/services/session';
 import { SessionDetailsDialog } from '../agenda/components/SessionDetailsDialog';
 import { SessionFormDialog } from '../paciente/components/SessionFormDialog';
@@ -120,6 +124,11 @@ export function Financeiro() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [monthlyNotes, setMonthlyNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'cash'>('pix');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [markingMonthPaid, setMarkingMonthPaid] = useState(false);
+  const [payMonthDialogVisible, setPayMonthDialogVisible] = useState(false);
 
   const yearOptions = useMemo(() => {
     const currentYear = today.getFullYear();
@@ -169,6 +178,10 @@ export function Financeiro() {
   const selectedPatient = patients.find((patient) => patient.patientId === selectedPatientId) || null;
 
   useEffect(() => {
+    setMonthlyNotes(selectedPatient?.monthlyNotes || '');
+  }, [selectedPatient?.patientId, selectedPatient?.monthlyNotes, month, year]);
+
+  useEffect(() => {
     if (selectedPatientId && !patients.some((patient) => patient.patientId === selectedPatientId)) {
       setSelectedPatientId('');
     }
@@ -204,6 +217,36 @@ export function Financeiro() {
       setError(err?.message || 'Erro ao excluir sessao.');
     } finally {
       setDeletingSession(false);
+    }
+  };
+
+  const handleMarkMonthPaid = async () => {
+    if (!selectedPatient) return;
+
+    setMarkingMonthPaid(true);
+    setError('');
+    try {
+      await markPatientMonthAsPaid(selectedPatient.patientId, year, month, paymentMethod);
+      await loadSummary();
+      setPayMonthDialogVisible(false);
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao marcar o mes como pago.');
+    } finally {
+      setMarkingMonthPaid(false);
+    }
+  };
+
+  const handleSaveMonthlyNotes = async () => {
+    if (!selectedPatient) return;
+    setSavingNotes(true);
+    setError('');
+    try {
+      await savePatientMonthlyNotes(selectedPatient.patientId, year, month, monthlyNotes);
+      await loadSummary();
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao salvar as observacoes.');
+    } finally {
+      setSavingNotes(false);
     }
   };
 
@@ -358,6 +401,47 @@ export function Financeiro() {
       >
         {selectedPatient ? (
           <div className="text-left">
+            <div className="mb-4 flex flex-wrap items-end gap-3 rounded-md bg-[#FFF8ED] p-3">
+              <label className="text-xs font-bold text-[#6A3710]">
+                Mes
+                <select
+                  value={month}
+                  onChange={(event) => setMonth(Number(event.target.value))}
+                  className="mt-1 block rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm text-[#502815]"
+                >
+                  {MONTHS.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}
+                </select>
+              </label>
+              <label className="text-xs font-bold text-[#6A3710]">
+                Ano
+                <select
+                  value={year}
+                  onChange={(event) => setYear(Number(event.target.value))}
+                  className="mt-1 block rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm text-[#502815]"
+                >
+                  {yearOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                </select>
+              </label>
+              <label className="text-xs font-bold text-[#6A3710]">
+                Forma de pagamento
+                <select
+                  value={paymentMethod}
+                  onChange={(event) => setPaymentMethod(event.target.value as 'pix' | 'cash')}
+                  className="mt-1 block rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm text-[#502815]"
+                >
+                  <option value="pix">Pix</option>
+                  <option value="cash">Dinheiro</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={() => setPayMonthDialogVisible(true)}
+                disabled={markingMonthPaid || selectedPatient.sessionDetails.length === 0}
+                className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {markingMonthPaid ? 'Salvando...' : 'Marcar mes todo como pago'}
+              </button>
+            </div>
             <div className="grid gap-3 border-b border-[#E8C6A8] pb-4 sm:grid-cols-[1fr_auto_auto] sm:items-start">
               <div className="min-w-0">
                 <div className="mt-1 grid gap-1 text-xs text-[#55422f] sm:grid-cols-2">
@@ -413,8 +497,68 @@ export function Financeiro() {
                 </button>
               ))}
             </div>
+
+            <div className="mt-5 border-t border-[#E8C6A8] pt-4">
+              <label className="block text-sm font-bold text-[#502815]" htmlFor="monthly-financial-notes">
+                Observacoes do resumo de {MONTHS[month - 1]} de {year}
+              </label>
+              <textarea
+                id="monthly-financial-notes"
+                value={monthlyNotes}
+                onChange={(event) => setMonthlyNotes(event.target.value)}
+                rows={4}
+                placeholder="Registre observacoes financeiras deste mes"
+                className="mt-2 w-full resize-y rounded-md border border-[#D79A69] bg-white px-3 py-2 text-sm text-[#111111] outline-none"
+              />
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveMonthlyNotes}
+                  disabled={savingNotes}
+                  className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-bold text-[#6A3710] disabled:opacity-60"
+                >
+                  {savingNotes ? 'Salvando...' : 'Salvar observacoes'}
+                </button>
+              </div>
+            </div>
           </div>
         ) : null}
+      </Dialog>
+
+      <Dialog
+        header="Confirmar pagamento do mes"
+        visible={payMonthDialogVisible}
+        onHide={() => {
+          if (!markingMonthPaid) setPayMonthDialogVisible(false);
+        }}
+        modal
+        draggable={false}
+        className="mx-4 w-full max-w-md"
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setPayMonthDialogVisible(false)}
+              disabled={markingMonthPaid}
+              className="rounded-md border border-[#6A3710] px-4 py-2 text-sm font-semibold text-[#6A3710] transition hover:bg-[#F5E0C6] disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleMarkMonthPaid}
+              disabled={markingMonthPaid}
+              className="rounded-md bg-[#6A3710] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#502815] disabled:opacity-60"
+            >
+              {markingMonthPaid ? 'Confirmando...' : 'Confirmar pagamento'}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-sm leading-6 text-[#31231A]">
+          Tem certeza que deseja marcar todas as sessoes cobradas de {MONTHS[month - 1]} de {year}
+          {selectedPatient ? ` de ${selectedPatient.patientName}` : ''} como pagas via {formatPaymentMethod(paymentMethod)}?
+        </p>
       </Dialog>
 
       <SessionDetailsDialog

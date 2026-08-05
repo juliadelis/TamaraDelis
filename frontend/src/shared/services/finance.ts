@@ -74,6 +74,7 @@ export async function getMonthlyFinancialSummary(year: number, month: number) {
         mainComplaint: '',
         currentSessionPrice: null,
         monthlySessions: '',
+        monthlyNotes: '',
         received: 0,
         expected: 0,
         sessions: 0,
@@ -123,4 +124,37 @@ export async function getMonthlyFinancialSummary(year: number, month: number) {
   }
 
   return response.json() as Promise<MonthlyFinancialSummary>;
+}
+
+export async function markPatientMonthAsPaid(
+  patientId: string,
+  year: number,
+  month: number,
+  paymentMethod: 'pix' | 'cash'
+) {
+  const response = await fetchWithAuthRetry(`${API_URL}/api/finance/monthly/pay`, {
+    method: 'PATCH',
+    body: JSON.stringify({ patientId, year, month, paymentMethod }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao marcar o mes como pago.');
+  }
+
+  return response.json() as Promise<{ updated: number }>;
+}
+
+export async function savePatientMonthlyNotes(patientId: string, year: number, month: number, notes: string) {
+  const response = await fetchWithAuthRetry(`${API_URL}/api/finance/monthly/notes`, {
+    method: 'PUT',
+    body: JSON.stringify({ patientId, year, month, notes }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error || 'Falha ao salvar as observacoes.');
+  }
+
+  return response.json() as Promise<{ notes: string }>;
 }

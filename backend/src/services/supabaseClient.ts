@@ -8,3 +8,13 @@ if (!url || !key) {
 }
 
 export const supabase = createClient(url, key);
+
+export function createAuthenticatedSupabaseClient(accessToken: string) {
+  return createClient(url!, key!, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  });
+}

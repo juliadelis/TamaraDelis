@@ -35,6 +35,7 @@ export interface MonthlyPatientFinancialSummary {
   mainComplaint: string;
   currentSessionPrice: number | null;
   monthlySessions: string;
+  monthlyNotes: string;
   received: number;
   expected: number;
   sessions: number;
