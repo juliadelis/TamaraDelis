@@ -186,7 +186,7 @@ export function SessionFormDialog({
   const [recurrence, setRecurrence] = useState<SessionRecurrenceType>(session?.recurrenceType || 'none');
   const [recurrenceEndDate, setRecurrenceEndDate] = useState(() => dateInputValue(new Date(defaultStart)));
   const [status, setStatus] = useState<SessionStatus>(session?.status || 'scheduled');
-  const [cid, setCid] = useState(session?.cid || '');
+  const [hypotheses, setHypotheses] = useState(session?.clinicalNotes || '');
   const [sessionTheme, setSessionTheme] = useState(session?.sessionTheme || '');
   const [sessionMotives, setSessionMotives] = useState(session?.sessionMotives || '');
   const [notes, setNotes] = useState(session?.notes || '');
@@ -297,7 +297,7 @@ export function SessionFormDialog({
       timezone: 'America/Sao_Paulo',
       status,
       type: modality,
-      cid,
+      clinicalNotes: hypotheses,
       sessionTheme,
       sessionMotives,
       moodScale: session?.moodScale ?? null,
@@ -435,16 +435,6 @@ export function SessionFormDialog({
         </label>
 
         <label className="text-sm font-medium text-[#502815]">
-          CID
-          <input
-            value={cid}
-            onChange={(event) => setCid(event.target.value)}
-            className="mt-1 w-full rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
-            placeholder="Ex: F41.1"
-          />
-        </label>
-
-        <label className="text-sm font-medium text-[#502815]">
           Inicio
           <input
             type="datetime-local"
@@ -508,6 +498,16 @@ export function SessionFormDialog({
             value={sessionMotives}
             onChange={(event) => setSessionMotives(event.target.value)}
             className="mt-1 min-h-36 w-full resize-y rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+          />
+        </label>
+
+        <label className="text-sm font-medium text-[#502815] sm:col-span-2">
+          Hipóteses
+          <textarea
+            value={hypotheses}
+            onChange={(event) => setHypotheses(event.target.value)}
+            className="mt-1 min-h-28 w-full resize-y rounded-md border border-[#D9D3CE] px-3 py-2 text-sm"
+            placeholder="Descreva as hipóteses da sessão"
           />
         </label>
 

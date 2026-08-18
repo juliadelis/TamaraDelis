@@ -22,8 +22,6 @@ type SessionDetailsDialogProps = {
   onSaved: (session: PatientSession) => void;
 };
 
-const TAG_OPTIONS = ['Ansiedade', 'Trabalho', 'Humor', 'Familia', 'Casal'];
-
 const STATUS_META: Record<SessionStatus, { label: string; chip: string; text: string }> = {
   scheduled: {
     label: 'Pendente',
@@ -152,7 +150,7 @@ export function SessionDetailsDialog({
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<SessionStatus>('scheduled');
   const [notes, setNotes] = useState('');
-  const [cid, setCid] = useState('');
+  const [hypotheses, setHypotheses] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [moodScale, setMoodScale] = useState(4);
   const [anxietyScale, setAnxietyScale] = useState(3);
@@ -183,7 +181,7 @@ export function SessionDetailsDialog({
     const nextStatus = initialStatus || session.status;
     setStatus(nextStatus);
     setNotes(session.notes || '');
-    setCid(session.cid || '');
+    setHypotheses(session.clinicalNotes || '');
     setTags(session.tags || []);
     setMoodScale(session.moodScale || 4);
     setAnxietyScale(session.anxietyScale || 3);
@@ -266,7 +264,7 @@ export function SessionDetailsDialog({
     await persist({
       status,
       notes,
-      cid: showCompletedFields ? cid : session.cid,
+      clinicalNotes: hypotheses,
       startsAt,
       endsAt,
       tags: nextTags,
@@ -278,12 +276,6 @@ export function SessionDetailsDialog({
       rescheduledFromStartsAt: rescheduling ? session.startsAt : session.rescheduledFromStartsAt,
       rescheduledFromEndsAt: rescheduling ? session.endsAt : session.rescheduledFromEndsAt,
     });
-  };
-
-  const toggleTag = (tag: string) => {
-    setTags((current) =>
-      current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]
-    );
   };
 
   return (
@@ -461,31 +453,13 @@ export function SessionDetailsDialog({
                 </label>
               </div>
 
-              <label className="mb-1 text-sm font-bold text-[#111111]">CID</label>
-              <input
-                value={cid}
-                onChange={(event) => setCid(event.target.value)}
-                className="mb-5 rounded border border-[#6A3710] px-3 py-2 text-sm"
-                placeholder="Ex: F41.1"
+              <label className="mb-1 text-sm font-bold text-[#111111]">Hipóteses</label>
+              <textarea
+                value={hypotheses}
+                onChange={(event) => setHypotheses(event.target.value)}
+                className="mb-5 min-h-28 resize-y rounded border border-[#6A3710] px-3 py-2 text-sm"
+                placeholder="Descreva as hipóteses da sessão"
               />
-
-              <h3 className="mb-2 text-sm font-bold text-[#111111]">Tags</h3>
-              <div className="mb-4 flex flex-wrap gap-2">
-                {TAG_OPTIONS.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleTag(tag)}
-                    className={`rounded-full px-2 py-1 text-xs font-bold ${
-                      tags.includes(tag)
-                        ? 'bg-[#6A3710] text-white'
-                        : 'bg-[#F5EEE8] text-[#6A3710]'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
 
               <label className="mb-1 text-sm font-bold text-[#111111]">Temas recorrentes</label>
               <input
