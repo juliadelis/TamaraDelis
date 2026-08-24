@@ -432,16 +432,6 @@ router.put('/:id', async (req, res) => {
     return res.status(400).json({ error: 'Paciente, inicio e fim da sessão sao obrigatorios.' });
   }
 
-  let syncGoogle = false;
-  try {
-    syncGoogle = await shouldSyncGoogle(userId, payload.type === 'online');
-    if (syncGoogle) {
-      await validateOnlinePatientEmail(payload.patient_id);
-    }
-  } catch (err: any) {
-    return res.status(400).json({ error: err.message });
-  }
-
   const { data: existing, error: existingError } = await supabase
     .from('patient_sessions')
     .select('*')
@@ -454,7 +444,43 @@ router.put('/:id', async (req, res) => {
   }
 
   const existingSession = existing as SessionRow;
-  if (payload.type === 'in_person' && existingSession.google_event_id) {
+  const returnsToCalendar = payload.status === 'scheduled' || payload.status === 'rescheduled';
+  const isCompletedSession = existingSession.status === 'completed' || payload.status === 'completed';
+  const suppressCompletedSessionSync = isCompletedSession && !returnsToCalendar;
+  const scheduleChanged =
+    existingSession.starts_at !== payload.starts_at || existingSession.ends_at !== payload.ends_at;
+  const titleChanged = (existingSession.title || '') !== (payload.title || '');
+  const wasCancelled = existingSession.status !== 'cancelled' && payload.status === 'cancelled';
+  const shouldRequestGoogleSync =
+    payload.type === 'online' &&
+    !suppressCompletedSessionSync &&
+    !wasCancelled &&
+    (scheduleChanged || titleChanged);
+
+  let syncGoogle = false;
+  try {
+    syncGoogle = await shouldSyncGoogle(userId, shouldRequestGoogleSync);
+    if (syncGoogle) {
+      await validateOnlinePatientEmail(payload.patient_id);
+    }
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  if (wasCancelled && existingSession.google_event_id && !suppressCompletedSessionSync) {
+    try {
+      await deleteGoogleCalendarEvent(userId, existingSession);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
+  if (
+    payload.type === 'in_person' &&
+    existingSession.google_event_id &&
+    !suppressCompletedSessionSync &&
+    !wasCancelled
+  ) {
     try {
       await deleteGoogleCalendarEvent(userId, existingSession, 'none');
     } catch (err: any) {
@@ -464,7 +490,7 @@ router.put('/:id', async (req, res) => {
 
   const updatePayload = await applyPaymentAutomation(payload, existingSession);
   const sessionUpdate =
-    payload.type === 'in_person'
+    payload.type === 'in_person' || (wasCancelled && !suppressCompletedSessionSync)
       ? {
           ...updatePayload,
           google_event_id: null,
