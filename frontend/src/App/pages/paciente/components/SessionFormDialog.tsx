@@ -264,11 +264,6 @@ export function SessionFormDialog({
       return;
     }
 
-    if (modality === 'online' && !selectedPatient.email?.trim()) {
-      setError('Cadastre o e-mail do paciente antes de criar uma sessão online.');
-      return;
-    }
-
     if (recurrence !== 'none' && !recurrenceEndDate) {
       setError('Informe a data final da periodicidade.');
       return;
@@ -522,13 +517,13 @@ export function SessionFormDialog({
 
         {modality === 'online' ? (
         <div className="rounded-md border border-[#D9D3CE] p-3 sm:col-span-2">
-          <p className="text-sm font-medium text-[#502815]">Google Agenda e convite por e-mail</p>
+          <p className="text-sm font-medium text-[#502815]">Google Agenda e Google Meet</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-[#6A3710]">
               {checkingGoogle
                 ? 'Verificando conexao...'
                 : googleConnected
-                ? `O link do Google Meet e o convite para ${selectedPatient?.email || 'o paciente'} serão criados automaticamente${googleEmail ? ` por ${googleEmail}` : ''}.`
+                ? `A sessão e o link do Google Meet serão criados apenas na sua agenda${googleEmail ? ` (${googleEmail})` : ''}, sem enviar convite ao paciente.`
                 : 'Google Agenda ainda não conectado.'}
             </p>
             {!googleConnected ? (

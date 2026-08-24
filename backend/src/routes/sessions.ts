@@ -292,22 +292,6 @@ async function shouldSyncGoogle(userId: string, requestedSync: unknown) {
   return true;
 }
 
-async function validateOnlinePatientEmail(patientId: string) {
-  const { data, error } = await supabase
-    .from('patients')
-    .select('email')
-    .eq('id', patientId)
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!String(data?.email || '').trim()) {
-    throw new Error('Cadastre o e-mail do paciente antes de criar uma sessao online.');
-  }
-}
-
 const router = Router();
 
 router.use(requireAuth);
@@ -398,9 +382,6 @@ router.post('/', async (req, res) => {
   let syncGoogle = false;
   try {
     syncGoogle = await shouldSyncGoogle(userId, payload.type === 'online');
-    if (syncGoogle) {
-      await validateOnlinePatientEmail(payload.patient_id);
-    }
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }
@@ -460,9 +441,6 @@ router.put('/:id', async (req, res) => {
   let syncGoogle = false;
   try {
     syncGoogle = await shouldSyncGoogle(userId, shouldRequestGoogleSync);
-    if (syncGoogle) {
-      await validateOnlinePatientEmail(payload.patient_id);
-    }
   } catch (err: any) {
     return res.status(400).json({ error: err.message });
   }
