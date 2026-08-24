@@ -271,8 +271,8 @@ export async function upsertGoogleCalendarEvent(userId: string, session: Session
 
   const eventBody = {
     summary: title,
-    location: session.location || undefined,
-    description: session.notes || undefined,
+    location: null,
+    description: null,
     start: {
       dateTime: session.starts_at,
       timeZone: session.timezone || 'America/Sao_Paulo',
