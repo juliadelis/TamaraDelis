@@ -131,3 +131,22 @@ export function logout() {
 export function isLoggedIn() {
   return Boolean(getAuthToken());
 }
+
+export async function getCurrentUser(): Promise<AuthUser> {
+  const token = getAuthToken();
+  if (!token) throw new Error('Faça login para visualizar seu perfil.');
+
+  const response = await fetch(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const body = await response.json();
+  if (!response.ok || !body.user?.id) {
+    throw new Error('Não foi possível carregar o perfil.');
+  }
+
+  // Uma resposta atrasada não deve restaurar dados após sair ou trocar de conta.
+  if (getAuthToken() === token) {
+    localStorage.setItem(USER_KEY, JSON.stringify(body.user));
+  }
+  return body.user as AuthUser;
+}

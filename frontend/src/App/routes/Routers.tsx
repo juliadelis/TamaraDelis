@@ -17,6 +17,8 @@ import { PrivacyPolicy, TermsOfService } from "../pages/public/LegalPages";
 import { NoPermission } from "../pages/public/NoPermission";
 import { getAuthToken } from "../../shared/services/auth";
 
+import { Perfil } from "../pages/perfil/Perfil";
+
 const Documentos = lazy(() => import("../pages/documentos/Documentos"));
 
 export function routerFactory() {
@@ -33,6 +35,7 @@ export function routerFactory() {
           element: <AuthGuard />,
           children: [
             { path: "home", element: <Home /> },
+            { path: "perfil", element: <Perfil /> },
             { path: "agenda", element: <Agenda /> },
             { path: "agenda/:date", element: <AgendaDia /> },
             { path: "documentos", element: <LazyRoute><Documentos /></LazyRoute> },
