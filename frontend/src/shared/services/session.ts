@@ -29,7 +29,7 @@ function buildQuery(filters: SessionFilters = {}) {
   return query ? `?${query}` : '';
 }
 
-async function fetchWithAuthRetry(input: RequestInfo | URL, init: RequestInit = {}) {
+export async function fetchWithAuthRetry(input: RequestInfo | URL, init: RequestInit = {}) {
   let response = await fetch(input, {
     ...init,
     headers: {

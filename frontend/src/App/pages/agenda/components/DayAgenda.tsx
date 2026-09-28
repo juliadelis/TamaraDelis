@@ -3,21 +3,18 @@ import { GoPlusCircle } from 'react-icons/go';
 import type { PatientSession, SessionStatus } from '../../../../shared/models/session.model';
 import { SESSION_STATUS_LABEL } from '../../../../shared/models/session.model';
 import { formatDayName, getMonthName } from '../../../../shared/utils/dateUtils';
+import type { PersonalAppointment } from '../../../../shared/services/personalAppointment';
 
 interface DayAgendaProps {
   selectedDate: Date;
   sessions: PatientSession[];
+  personalAppointments: PersonalAppointment[];
+  onViewPersonalAppointment: (appointment: PersonalAppointment) => void;
   onPrevDay: () => void;
   onNextDay: () => void;
   onRegisterSession: (slot?: string) => void;
   onViewSession: (session: PatientSession) => void;
 }
-
-const TIME_SLOTS = Array.from({ length: 33 }, (_, index) => {
-  const hour = 6 + Math.floor(index / 2);
-  const minutes = index % 2 === 0 ? '00' : '30';
-  return `${String(hour).padStart(2, '0')}:${minutes}`;
-});
 
 const SLOT_HEIGHT = 40;
 const SLOT_MINUTES = 30;
@@ -59,39 +56,81 @@ function minutesFromDate(value: string) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
-function minutesFromSlot(slot: string) {
-  const [hour, minutes] = slot.split(':').map(Number);
-  return hour * 60 + minutes;
-}
-
 export const DayAgenda = ({
   selectedDate,
   sessions,
+  personalAppointments,
+  onViewPersonalAppointment,
   onPrevDay,
   onNextDay,
   onRegisterSession,
   onViewSession,
 }: DayAgendaProps) => {
-  const firstSlotMinutes = minutesFromSlot(TIME_SLOTS[0]);
-  const lastSlotMinutes = minutesFromSlot(TIME_SLOTS[TIME_SLOTS.length - 1]);
-  const positionedSessions = sessions
-    .map((session) => {
-      const startMinutes = minutesFromDate(session.startsAt);
-      const endMinutes = minutesFromDate(session.endsAt);
+  const events = [
+    ...sessions.map(session => ({
+      key: `session-${session.id}`,
+      title: session.patientName || session.title || 'Sessão',
+      label: SESSION_STATUS_LABEL[session.status],
+      style: STATUS_STYLES[session.status],
+      startsAt: session.startsAt,
+      duration: Math.max(1, (Date.parse(session.endsAt) - Date.parse(session.startsAt)) / 60000),
+      onView: () => onViewSession(session),
+    })),
+    ...personalAppointments.map(appointment => ({
+      key: `personal-${appointment.id}`,
+      title: appointment.name,
+      label: 'Agenda pessoal',
+      style: { card: 'bg-blue-100', accent: 'bg-blue-600', label: 'text-blue-700' },
+      startsAt: appointment.starts_at,
+      duration: appointment.duration_minutes,
+      onView: () => onViewPersonalAppointment(appointment),
+    })),
+  ];
+  const firstSlotMinutes = Math.floor(Math.min(360, ...events.map(event => minutesFromDate(event.startsAt))) / SLOT_MINUTES) * SLOT_MINUTES;
+  const endMinutes = Math.min(1440, Math.max(1350, ...events.map(event => minutesFromDate(event.startsAt) + event.duration)));
+  const timeSlots = Array.from({ length: Math.ceil((endMinutes - firstSlotMinutes) / SLOT_MINUTES) }, (_, index) => {
+    const minutes = firstSlotMinutes + index * SLOT_MINUTES;
+    return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  });
+  const positionedEvents = events
+    .map((event) => {
+      const startMinutes = minutesFromDate(event.startsAt);
       const startIndex = Math.floor((startMinutes - firstSlotMinutes) / SLOT_MINUTES);
-      const duration = Math.max(endMinutes - startMinutes, SLOT_MINUTES);
-      const span = Math.max(1, Math.ceil(duration / SLOT_MINUTES));
+      const span = Math.max(1, Math.ceil((Math.min(startMinutes + event.duration, 1440) - firstSlotMinutes) / SLOT_MINUTES) - startIndex);
 
       return {
-        session,
+        event,
         startIndex,
         span,
+        column: 0,
+        columns: 1,
       };
     })
-    .filter((item) => item.startIndex >= 0 && firstSlotMinutes + item.startIndex * SLOT_MINUTES <= lastSlotMinutes);
+    .sort((a, b) => a.startIndex - b.startIndex || b.span - a.span);
+
+  // Share the available width between events in each overlapping group.
+  let group: typeof positionedEvents = [];
+  let groupEnd = -1;
+  let columnEnds: number[] = [];
+  const finishGroup = () => {
+    group.forEach(item => { item.columns = columnEnds.length; });
+  };
+  positionedEvents.forEach(item => {
+    if (item.startIndex >= groupEnd) {
+      finishGroup();
+      group = [];
+      columnEnds = [];
+    }
+    const available = columnEnds.findIndex(end => end <= item.startIndex);
+    item.column = available === -1 ? columnEnds.length : available;
+    columnEnds[item.column] = item.startIndex + item.span;
+    group.push(item);
+    groupEnd = Math.max(...columnEnds);
+  });
+  finishGroup();
 
   const occupiedSlots = new Set<number>();
-  positionedSessions.forEach((item) => {
+  positionedEvents.forEach((item) => {
     for (let index = item.startIndex; index < item.startIndex + item.span; index += 1) {
       occupiedSlots.add(index);
     }
@@ -137,8 +176,8 @@ export const DayAgenda = ({
       <div className="relative">
         <div className="absolute bottom-0 left-[56px] top-0 w-px bg-[#D9874D]" />
 
-        <div className="grid" style={{ gridTemplateRows: `repeat(${TIME_SLOTS.length}, ${SLOT_HEIGHT}px)` }}>
-          {TIME_SLOTS.map((slot, index) => (
+        <div className="grid" style={{ gridTemplateRows: `repeat(${timeSlots.length}, ${SLOT_HEIGHT}px)` }}>
+          {timeSlots.map((slot, index) => (
             <div key={slot} className="relative grid grid-cols-[52px_1fr] gap-2">
               <div className="pr-2 text-right text-[17px] font-bold leading-[28px] text-[#111111]">
                 {slot}
@@ -162,28 +201,29 @@ export const DayAgenda = ({
 
         <div
           className="pointer-events-none absolute left-[62px] right-0 top-0"
-          style={{ height: TIME_SLOTS.length * SLOT_HEIGHT }}
+          style={{ height: timeSlots.length * SLOT_HEIGHT }}
         >
-          {positionedSessions.map(({ session, startIndex, span }) => {
-            const style = STATUS_STYLES[session.status];
+          {positionedEvents.map(({ event, startIndex, span, column, columns }) => {
+            const style = event.style;
             const top = startIndex * SLOT_HEIGHT;
             const height = span * SLOT_HEIGHT - 8;
 
             return (
               <button
-                key={session.id}
+                key={event.key}
                 type="button"
-                onClick={() => onViewSession(session)}
-                className={`pointer-events-auto absolute left-2 right-0 overflow-hidden rounded-md px-6 py-2 text-left transition hover:brightness-[0.98] focus:outline-none   ${style.card}`}
-                style={{ top, height }}
-                aria-label={`Ver detalhes de ${session.patientName || session.title || 'sessao'}`}
+                onClick={event.onView}
+                className={`pointer-events-auto absolute overflow-hidden rounded-md px-4 py-1 text-left transition hover:brightness-[0.98] focus-visible:outline-2 focus-visible:outline-blue-700 ${style.card}`}
+                style={{ top, height, left: `calc(${column * 100 / columns}% + 8px)`, width: `calc(${100 / columns}% - 8px)` }}
+                aria-label={`Ver detalhes de ${event.title}, ${event.label}`}
+                title={`${event.title} · ${event.label} · ${event.duration} minutos`}
               >
                 <div className={`absolute bottom-2 left-2 top-2 w-[3px] rounded-full ${style.accent}`} />
                 <h2 className="truncate text-[17px] font-bold leading-tight text-[#111111]">
-                  {session.patientName || session.title || 'Sessão'}
+                  {event.title}
                 </h2>
                 <p className={`text-sm font-bold leading-tight ${style.label}`}>
-                  {SESSION_STATUS_LABEL[session.status]}
+                  {event.label}
                 </p>
                 <span className="text-xs font-medium leading-tight text-[#3A1C0B] underline">
                   Ver detalhes

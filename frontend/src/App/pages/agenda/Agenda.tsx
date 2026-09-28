@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AgendaCalendar } from './components/AgendaCalendar';
 import type { PatientSession } from '../../../shared/models/session.model';
 import { getSessions } from '../../../shared/services/session';
+import { getPersonalAppointments, type PersonalAppointment } from '../../../shared/services/personalAppointment';
 
 function startOfMonthIso(year: number, month: number) {
   return new Date(year, month, 1, 0, 0, 0, 0).toISOString();
@@ -31,6 +32,24 @@ export const Agenda = () => {
   });
   const [sessions, setSessions] = useState<PatientSession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [personalAppointments, setPersonalAppointments] = useState<PersonalAppointment[]>([]);
+  const [personalError, setPersonalError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setPersonalAppointments([]);
+      setPersonalError('');
+      try {
+        const data = await getPersonalAppointments({ from: startOfMonthIso(currentYear, currentMonth), to: endOfMonthIso(currentYear, currentMonth) });
+        if (active) setPersonalAppointments(data);
+      } catch (error) {
+        if (active) setPersonalError(error instanceof Error ? error.message : 'Não foi possível carregar a agenda pessoal.');
+      }
+    };
+    void load();
+    return () => { active = false; };
+  }, [currentMonth, currentYear]);
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -53,8 +72,11 @@ export const Agenda = () => {
   }, [currentMonth, currentYear]);
 
   const scheduleDays = useMemo(
-    () => Array.from(new Set(sessions.map((session) => new Date(session.startsAt).getDate()))),
-    [sessions]
+    () => Array.from(new Set([
+      ...sessions.map((session) => new Date(session.startsAt).getDate()),
+      ...personalAppointments.map(appointment => new Date(appointment.starts_at).getDate()),
+    ])),
+    [sessions, personalAppointments]
   );
   const monthlyPatientCount = useMemo(
     () => new Set(sessions.map((session) => session.patientId)).size,
@@ -100,6 +122,7 @@ export const Agenda = () => {
         </div>
 
         <div className="max-w-3xl">
+          {personalError && <p role="alert" className="mb-3 text-red-700">{personalError}</p>}
           <AgendaCalendar
             month={currentMonth}
             year={currentYear}
@@ -110,6 +133,7 @@ export const Agenda = () => {
           />
 
           <div className="mt-6 space-y-3 text-left text-sm font-bold text-[#502815]">
+            <p>{personalAppointments.length} {personalAppointments.length === 1 ? 'compromisso pessoal' : 'compromissos pessoais'}</p>
             <p>
               {sessions.length} {sessionLabel}
             </p>

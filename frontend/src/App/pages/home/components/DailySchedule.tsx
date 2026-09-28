@@ -85,7 +85,7 @@ export const DailySchedule = ({
       {!loading && !error ? (
         <button
           type="button"
-          onClick={() => navigate(`/agenda/${toDateParam(selectedDate)}`)}
+          onClick={() => navigate(`/agenda/${toDateParam(selectedDate)}`, { state: { registerAppointment: true } })}
           className="mt-6 flex items-center gap-2 bg-[#6A3710] text-white px-4 py-3 rounded-lg font-medium hover:bg-amber-950 transition-colors"
         >
           <GoPlusCircle size={18} />

@@ -6,6 +6,7 @@ import documentsRouter from './routes/documents';
 import financeRouter from './routes/finance';
 import patientsRouter from './routes/patients';
 import sessionsRouter from './routes/sessions';
+import personalAppointmentsRouter from './routes/personalAppointments';
 
 const app = express();
 
@@ -20,5 +21,6 @@ app.use('/api/documents', documentsRouter);
 app.use('/api/finance', financeRouter);
 app.use('/api/patients', patientsRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/personal-appointments', personalAppointmentsRouter);
 
 export default app;
