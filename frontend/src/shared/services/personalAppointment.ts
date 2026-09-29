@@ -1,5 +1,6 @@
 import API_URL from './api';
 import { fetchWithAuthRetry } from './session';
+import type { ExpenseCategory } from './personalFinance';
 
 export type PersonalAppointment = {
   id: string;
@@ -7,6 +8,7 @@ export type PersonalAppointment = {
   starts_at: string;
   duration_minutes: number;
   notes: string;
+  expense?: { amount: number; category: ExpenseCategory } | null;
 };
 
 export async function getPersonalAppointments(filters: { from: string; to: string }): Promise<PersonalAppointment[]> {
@@ -15,7 +17,7 @@ export async function getPersonalAppointments(filters: { from: string; to: strin
   return response.json();
 }
 
-export async function savePersonalAppointment(payload: Omit<PersonalAppointment, 'id'>, id?: string): Promise<PersonalAppointment> {
+export async function savePersonalAppointment(payload: Omit<PersonalAppointment, 'id' | 'expense'> & { amount: number | null; category: ExpenseCategory | null }, id?: string): Promise<PersonalAppointment> {
   const response = await fetchWithAuthRetry(`${API_URL}/api/personal-appointments${id ? `/${encodeURIComponent(id)}` : ''}`, {
     method: id ? 'PUT' : 'POST', body: JSON.stringify(payload),
   });

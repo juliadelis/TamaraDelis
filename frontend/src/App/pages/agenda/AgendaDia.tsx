@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Dialog } from 'primereact/dialog';
+import { EXPENSE_CATEGORIES } from '../../../shared/services/personalFinance';
 import { PersonalAppointmentFormDialog } from './components/PersonalAppointmentFormDialog';
 import { deletePersonalAppointment, getPersonalAppointments, type PersonalAppointment } from '../../../shared/services/personalAppointment';
 import { FiArrowLeft } from 'react-icons/fi';
@@ -240,6 +241,20 @@ export function AgendaDia() {
             <p>{new Date(selectedPersonalAppointment.starts_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</p>
             <p>Duração: {selectedPersonalAppointment.duration_minutes} minutos</p>
             <p className="whitespace-pre-wrap break-words">{selectedPersonalAppointment.notes || 'Sem observação.'}</p>
+            {selectedPersonalAppointment.expense && <section aria-label="Detalhes financeiros" className="rounded-lg border border-blue-200 bg-white p-3">
+              <h4 className="font-semibold">Detalhes financeiros</h4>
+              <dl className="mt-2 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm">Valor da despesa</dt>
+                  <dd className="font-semibold">{Number(selectedPersonalAppointment.expense.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm">Categoria</dt>
+                  <dd className="font-semibold">{EXPENSE_CATEGORIES.find(([value]) => value === selectedPersonalAppointment.expense?.category)?.[1] || selectedPersonalAppointment.expense.category}</dd>
+                </div>
+              </dl>
+            </section>}
+            {selectedPersonalAppointment.expense && <p className="text-sm">Ao excluir este compromisso, a despesa vinculada também será excluída.</p>}
             {personalActionError && <p role="alert" className="text-red-700">{personalActionError}</p>}
             <div className="flex flex-wrap justify-end gap-3 pt-3">
               <button type="button" disabled={deletingPersonal} className="rounded-md border border-red-700 px-4 py-2 text-red-700 disabled:opacity-50" onClick={handleDeletePersonalAppointment}>
