@@ -18,6 +18,7 @@ import { NoPermission } from "../pages/public/NoPermission";
 import { getAuthToken } from "../../shared/services/auth";
 
 import { Perfil } from "../pages/perfil/Perfil";
+import { PersonalFinance } from "../pages/perfil/PersonalFinance";
 
 const Documentos = lazy(() => import("../pages/documentos/Documentos"));
 
@@ -36,6 +37,7 @@ export function routerFactory() {
           children: [
             { path: "home", element: <Home /> },
             { path: "perfil", element: <Perfil /> },
+            { path: "perfil/financas-pessoais", element: <PersonalFinance /> },
             { path: "agenda", element: <Agenda /> },
             { path: "agenda/:date", element: <AgendaDia /> },
             { path: "documentos", element: <LazyRoute><Documentos /></LazyRoute> },

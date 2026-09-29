@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiLogOut, FiUser } from 'react-icons/fi';
 import { getCurrentUser, getUser, logout, type AuthUser } from '../../../shared/services/auth';
 
@@ -90,6 +90,12 @@ export function Perfil() {
             </div>
           ))}
         </dl>
+      </section>
+
+      <section aria-label="Finanças pessoais" className="mt-6 rounded-2xl border border-[#E8DED5] bg-white p-6">
+        <h2 className="font-semibold text-[#502815]">Finanças pessoais</h2>
+        <p className="mt-2 text-sm text-[#6B5A4B]">Registre suas despesas e acompanhe os recebimentos das sessões, o saldo mensal e os gastos por categoria.</p>
+        <Link to="/perfil/financas-pessoais" className="mt-4 inline-flex rounded-xl bg-[#6A3710] px-5 py-3 font-semibold text-white hover:bg-[#502815]">Acessar finanças pessoais</Link>
       </section>
 
       <section aria-label="Sessão" className="mt-6 rounded-2xl border border-[#E8DED5] bg-white p-6">
