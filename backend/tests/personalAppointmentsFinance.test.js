@@ -28,6 +28,29 @@ function setup(result = { data: { id: 'saved', expense: null }, error: null }) {
 }
 const appointment = { name: 'Consulta pessoal', starts_at: '2026-09-29T12:00:00Z', duration_minutes: 60, notes: '' };
 
+test('recurrence uses one atomic operation with frequency, end date and financial fields', async () => {
+  for (const recurrence of ['weekly', 'biweekly', 'monthly']) {
+    const app = setup();
+    const response = await app.request({ ...appointment, recurrence_type: recurrence, recurrence_until: '2027-01-31', amount: 50, category: 'saude' });
+    assert.equal(response.code, 201);
+    assert.equal(app.calls.length, 1);
+    assert.equal(app.calls[0].name, 'create_recurring_personal_appointments');
+    assert.equal(app.calls[0].payload.p_recurrence, recurrence);
+    assert.equal(app.calls[0].payload.p_until, '2027-01-31');
+    assert.equal(app.calls[0].payload.p_amount, 50);
+  }
+});
+
+test('invalid recurrence dates and attempts to create a series during editing are rejected', async () => {
+  for (const until of [undefined, '2026-02-30', '2026-09-28', '2029-01-01']) {
+    const app = setup();
+    assert.equal((await app.request({ ...appointment, recurrence_type: 'weekly', recurrence_until: until })).code, 400);
+    assert.equal(app.calls.length, 0);
+  }
+  const app = setup();
+  assert.equal((await app.request({ ...appointment, recurrence_type: 'weekly', recurrence_until: '2027-01-01' }, '00000000-0000-0000-0000-000000000001')).code, 400);
+});
+
 test('blank value saves the appointment without a financial amount or category', async () => {
   for (const amount of [undefined, null, '']) {
     const app = setup();

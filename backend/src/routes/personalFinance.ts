@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
       (async () => {
         for (let offset = 0; ; offset += 1000) {
           const { data, error } = await client.from('personal_expenses').select('id,name,amount,category,spent_on')
-            .gte('spent_on', fromDate).lt('spent_on', toDate).lte('spent_on', today())
+            .gte('spent_on', fromDate).lt('spent_on', toDate)
             .order('spent_on', { ascending: false }).order('id').range(offset, offset + 999);
           if (error) throw error;
           expenses.push(...(data || []));

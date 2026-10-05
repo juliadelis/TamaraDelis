@@ -34,6 +34,17 @@ const saveAppointment: RequestHandler = async (req, res) => {
   const startsAt = typeof body.starts_at === 'string' ? body.starts_at : '';
   const duration = body.duration_minutes;
   const notes = typeof body.notes === 'string' ? body.notes.trim() : '';
+  const recurrence = body.recurrence_type ?? 'none';
+  const until = body.recurrence_until;
+  if (!['none', 'weekly', 'biweekly', 'monthly'].includes(recurrence) || (req.params.id && recurrence !== 'none')) {
+    return res.status(400).json({ error: 'Repetição inválida. A edição altera somente uma ocorrência.' });
+  }
+  if (recurrence !== 'none') {
+    const end = typeof until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(until) ? Date.parse(`${until}T23:59:59-03:00`) : NaN;
+    if (!Number.isFinite(end) || new Date(`${until}T00:00:00Z`).toISOString().slice(0, 10) !== until || end < Date.parse(startsAt) || end - Date.parse(startsAt) > 367 * 86400000) {
+      return res.status(400).json({ error: 'Informe uma data final válida, após o início e dentro de 1 ano.' });
+    }
+  }
   const amount = body.amount === undefined || body.amount === null || body.amount === '' ? null : body.amount;
   const categories = ['mercado', 'necessidades', 'eletronicos', 'assinaturas', 'roupa', 'beleza', 'presentes', 'saude', 'despesas_eventuais', 'desenvolvimento', 'transporte', 'restaurante', 'lazer', 'contas'];
   if (amount !== null && (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > 9999999999.99 || Math.abs(amount * 100 - Math.round(amount * 100)) > 0.0001 || !categories.includes(body.category))) {
@@ -45,8 +56,8 @@ const saveAppointment: RequestHandler = async (req, res) => {
   }
   try {
     const client = createAuthenticatedSupabaseClient(req.headers.authorization!.split(' ')[1]);
-    const { data, error } = await client.rpc('save_personal_appointment_with_expense', {
-      p_id: req.params.id || null, p_name: name, p_starts_at: new Date(startsAt).toISOString(),
+    const { data, error } = await client.rpc(recurrence === 'none' ? 'save_personal_appointment_with_expense' : 'create_recurring_personal_appointments', {
+      ...(recurrence === 'none' ? { p_id: req.params.id || null } : { p_recurrence: recurrence, p_until: until }), p_name: name, p_starts_at: new Date(startsAt).toISOString(),
       p_duration_minutes: duration, p_notes: notes, p_amount: amount, p_category: amount === null ? null : body.category,
     });
     if (error) throw error;
@@ -62,15 +73,26 @@ router.post('/', saveAppointment);
 router.put('/:id', saveAppointment);
 
 router.delete('/:id', async (req, res) => {
+  const scope = req.query.scope ?? 'single';
+  if (!['single', 'all', 'future'].includes(scope as string)) return res.status(400).json({ error: 'Opção de exclusão inválida.' });
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.id)) {
     return res.status(400).json({ error: 'Identificador inválido.' });
   }
   try {
     const client = createAuthenticatedSupabaseClient(req.headers.authorization!.split(' ')[1]);
-    const { data, error } = await client.from('personal_appointments').delete().eq('id', req.params.id).select('id').maybeSingle();
+    const { data: selected, error: readError } = await client.from('personal_appointments').select('id,recurrence_group_id,starts_at').eq('id', req.params.id).maybeSingle();
+    if (readError) throw readError;
+    if (!selected) return res.status(404).json({ error: 'Compromisso não encontrado.' });
+    let query = client.from('personal_appointments').delete();
+    if (scope === 'single' || !selected.recurrence_group_id) query = query.eq('id', selected.id);
+    else {
+      query = query.eq('recurrence_group_id', selected.recurrence_group_id);
+      if (scope === 'future') query = query.gte('starts_at', selected.starts_at);
+    }
+    const { data, error } = await query.select('id');
     if (error) throw error;
-    if (!data) return res.status(404).json({ error: 'Compromisso não encontrado.' });
-    return res.status(204).send();
+    if (!data?.length) return res.status(404).json({ error: 'Compromisso não encontrado.' });
+    return res.json({ deletedIds: data.map(item => item.id) });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Não foi possível excluir o compromisso pessoal.' });

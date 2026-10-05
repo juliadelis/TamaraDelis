@@ -11,10 +11,17 @@ function setup({ expenses = [], sessions = [], saved = { id: 'saved' } } = {}) {
   for (const method of ['get', 'post', 'put', 'delete']) router[method] = (url, handler) => { routes[`${method} ${url}`] = handler; };
   function from(table) {
     const query = {};
+    const dateFilters = [];
     for (const method of ['select', 'gte', 'lt', 'lte', 'order', 'eq', 'is', 'not', 'or', 'insert', 'update', 'delete']) {
-      query[method] = (...args) => { calls.push({ table, method, args }); return query; };
+      query[method] = (...args) => {
+        calls.push({ table, method, args });
+        if (args[0] === 'spent_on' && ['gte', 'lt', 'lte'].includes(method)) dateFilters.push({ method, value: args[1] });
+        return query;
+      };
     }
-    query.range = async (start, end) => ({ data: (table === 'personal_expenses' ? expenses : sessions).slice(start, end + 1), error: null });
+    query.range = async (start, end) => ({ data: (table === 'personal_expenses' ? expenses.filter(expense =>
+      !expense.spent_on || dateFilters.every(filter => filter.method === 'gte' ? expense.spent_on >= filter.value : filter.method === 'lt' ? expense.spent_on < filter.value : expense.spent_on <= filter.value)
+    ) : sessions).slice(start, end + 1), error: null });
     query.maybeSingle = async () => ({ data: saved, error: null });
     return query;
   }
@@ -36,6 +43,15 @@ function setup({ expenses = [], sessions = [], saved = { id: 'saved' } } = {}) {
 }
 const id = '00000000-0000-0000-0000-000000000001';
 const validExpense = { name: ' Mercado ', amount: 12.34, category: 'mercado', spent_on: '2025-05-12' };
+
+test('all future repetitions in the selected month count toward expenses and balance', async () => {
+  const app = setup({ expenses: ['2099-10-05', '2099-10-12', '2099-10-19', '2099-10-26', '2099-11-02'].map((spent_on, index) => ({ id: String(index), amount: 100, category: 'saude', spent_on })) });
+  const result = await app.request('get /', { query: { year: '2099', month: '10' } });
+  assert.equal(result.code, 200);
+  assert.equal(result.body.expenses.length, 4);
+  assert.equal(result.body.spent, 400);
+  assert.equal(result.body.balance, -400);
+});
 
 test('monthly summary reads every page and calculates money in cents', async () => {
   const app = setup({ expenses: Array.from({ length: 1001 }, (_, index) => ({ id: String(index), amount: 0.10 })), sessions: [{ paid_amount: 0, session_price: 100 }, { paid_amount: null, session_price: 80 }, { paid_amount: 0.30, session_price: 10 }] });

@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Dialog } from 'primereact/dialog';
 import { EXPENSE_CATEGORIES } from '../../../shared/services/personalFinance';
 import { PersonalAppointmentFormDialog } from './components/PersonalAppointmentFormDialog';
-import { deletePersonalAppointment, getPersonalAppointments, type PersonalAppointment } from '../../../shared/services/personalAppointment';
+import { deletePersonalAppointment, getPersonalAppointments, type PersonalAppointment, type PersonalDeleteScope } from '../../../shared/services/personalAppointment';
 import { FiArrowLeft } from 'react-icons/fi';
 import { DayAgenda } from './components/DayAgenda';
 import { SessionDetailsDialog } from './components/SessionDetailsDialog';
@@ -64,6 +64,8 @@ export function AgendaDia() {
   const [selectedPersonalAppointment, setSelectedPersonalAppointment] = useState<PersonalAppointment | null>(null);
   const [editingPersonalAppointment, setEditingPersonalAppointment] = useState<PersonalAppointment | null>(null);
   const [deletingPersonal, setDeletingPersonal] = useState(false);
+  const [personalDeleteVisible, setPersonalDeleteVisible] = useState(false);
+  const [personalDeleteScope, setPersonalDeleteScope] = useState<PersonalDeleteScope>('single');
   const [personalActionError, setPersonalActionError] = useState('');
 
   const handleDeletePersonalAppointment = async () => {
@@ -71,8 +73,9 @@ export function AgendaDia() {
     setPersonalActionError('');
     setDeletingPersonal(true);
     try {
-      await deletePersonalAppointment(selectedPersonalAppointment.id);
-      setPersonalAppointments(current => current.filter(item => item.id !== selectedPersonalAppointment.id));
+      const deletedIds = new Set(await deletePersonalAppointment(selectedPersonalAppointment.id, personalDeleteScope));
+      setPersonalAppointments(current => current.filter(item => !deletedIds.has(item.id)));
+      setPersonalDeleteVisible(false);
       setSelectedPersonalAppointment(null);
     } catch (error) {
       setPersonalActionError(error instanceof Error ? error.message : 'Não foi possível excluir o compromisso.');
@@ -235,6 +238,26 @@ export function AgendaDia() {
       <div className="relative">
         {personalLoading && <p className="text-sm text-[#6A3710]">Carregando agenda pessoal...</p>}
         {personalError && <p role="alert" className="text-red-700">{personalError}</p>}
+        <Dialog header="Excluir compromisso pessoal" visible={personalDeleteVisible} onHide={() => { if (!deletingPersonal) setPersonalDeleteVisible(false); }} closable={!deletingPersonal} closeOnEscape={!deletingPersonal} modal style={{ width: '32rem', maxWidth: '95vw' }}>
+          <p className="mb-4 break-words">{selectedPersonalAppointment?.name}</p>
+          {selectedPersonalAppointment?.recurrence_group_id ? <fieldset disabled={deletingPersonal} className="space-y-3">
+            <legend className="mb-3 font-semibold">Quais eventos deseja excluir?</legend>
+            {([
+              ['single', 'Somente este evento'],
+              ['all', 'Todas as repetições'],
+              ['future', 'Este evento e todas as repetições seguintes'],
+            ] as const).map(([value, label]) => <label key={value} className="flex items-center gap-2">
+              <input type="radio" name="personal-delete-scope" value={value} checked={personalDeleteScope === value} onChange={() => setPersonalDeleteScope(value)} />{label}
+            </label>)}
+            {personalDeleteScope === 'future' && <p className="text-sm">Os compromissos anteriores a este evento serão mantidos.</p>}
+          </fieldset> : <p>Deseja excluir este compromisso?</p>}
+          <p className="mt-4 text-sm">As despesas vinculadas aos eventos excluídos também serão removidas.</p>
+          {personalActionError && <p role="alert" className="mt-3 text-red-700">{personalActionError}</p>}
+          <div className="mt-5 flex justify-end gap-3">
+            <button type="button" disabled={deletingPersonal} onClick={() => setPersonalDeleteVisible(false)}>Cancelar</button>
+            <button type="button" disabled={deletingPersonal} onClick={handleDeletePersonalAppointment} className="rounded-md bg-red-700 px-4 py-2 text-white disabled:opacity-50">{deletingPersonal ? 'Excluindo...' : 'Confirmar exclusão'}</button>
+          </div>
+        </Dialog>
         <Dialog header="Compromisso pessoal" visible={Boolean(selectedPersonalAppointment)} onHide={() => { if (!deletingPersonal) setSelectedPersonalAppointment(null); }} closable={!deletingPersonal} closeOnEscape={!deletingPersonal} modal style={{ width: '32rem', maxWidth: '95vw' }}>
           {selectedPersonalAppointment && <div className="space-y-3 rounded-lg bg-blue-50 p-4 text-left text-blue-950">
             <h3 className="break-words text-lg font-semibold">{selectedPersonalAppointment.name}</h3>
@@ -257,7 +280,7 @@ export function AgendaDia() {
             {selectedPersonalAppointment.expense && <p className="text-sm">Ao excluir este compromisso, a despesa vinculada também será excluída.</p>}
             {personalActionError && <p role="alert" className="text-red-700">{personalActionError}</p>}
             <div className="flex flex-wrap justify-end gap-3 pt-3">
-              <button type="button" disabled={deletingPersonal} className="rounded-md border border-red-700 px-4 py-2 text-red-700 disabled:opacity-50" onClick={handleDeletePersonalAppointment}>
+              <button type="button" disabled={deletingPersonal} className="rounded-md border border-red-700 px-4 py-2 text-red-700 disabled:opacity-50" onClick={() => { setPersonalDeleteScope('single'); setPersonalActionError(''); setPersonalDeleteVisible(true); }}>
                 {deletingPersonal ? 'Excluindo...' : 'Excluir compromisso'}
               </button>
               <button type="button" disabled={deletingPersonal} className="rounded-md bg-blue-700 px-4 py-2 text-white disabled:opacity-50" onClick={() => {

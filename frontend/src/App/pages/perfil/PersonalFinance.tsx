@@ -87,7 +87,7 @@ export function PersonalFinance() {
       <h1 className="text-3xl font-semibold text-[#502815]">Finanças pessoais</h1>
       <button type="button" className={buttonClass} onClick={() => setForm({ expense: null })}>Adicionar despesa</button>
     </div>
-    <p className="mt-3 text-sm text-[#6B5A4B]">Acompanhe os recebimentos das sessões e suas despesas no mês selecionado, até hoje.</p>
+    <p className="mt-3 text-sm text-[#6B5A4B]">Acompanhe os recebimentos das sessões e todas as despesas do mês selecionado, incluindo as repetições futuras dos compromissos pessoais.</p>
     <div className="my-6 flex flex-wrap gap-4">
       <label>Mês<select className={inputClass} value={month} onChange={e => setMonth(Number(e.target.value))}>
         {Array.from({ length: 12 }, (_, index) => <option key={index} value={index + 1}>{new Date(2026, index, 1).toLocaleDateString('pt-BR', { month: 'long' })}</option>)}
