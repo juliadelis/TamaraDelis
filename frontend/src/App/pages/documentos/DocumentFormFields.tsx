@@ -242,26 +242,7 @@ export function DocumentFormFields({
             value={form.reimbursementDiagnosis}
             onChange={onUpdateField}
           />
-          <TextField
-            label="Data do primeiro contato"
-            name="firstContactDate"
-            value={form.firstContactDate}
-            onChange={onUpdateField}
-            type="date"
-          />
-          <TextField
-            label="Data da primeira entrevista"
-            name="firstInterviewDate"
-            value={form.firstInterviewDate}
-            onChange={onUpdateField}
-            type="date"
-          />
-          <TextField
-            label="Horario da primeira entrevista"
-            name="firstInterviewTime"
-            value={form.firstInterviewTime}
-            onChange={onUpdateField}
-          />
+         
           <TextField
             label="Convenio"
             name="reimbursementInsurance"

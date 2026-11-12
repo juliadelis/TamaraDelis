@@ -39,7 +39,8 @@ function DocumentBody({ form }: { form: DocumentForm }) {
         <p>CRP: 06/106405</p>
 
         <h2>Identificação da paciente</h2>
-        <p>Nome: {form.patientName || '______________________________________'}</p>
+        <p>Nome: {form.patientName || '______________________________________'} </p>
+        <p>CPF: {form.patientCpf || '________________'}</p>
         <p>Data de nascimento: {formatDate(form.patientBirthDate)}</p>
 
         <p>
@@ -58,12 +59,6 @@ function DocumentBody({ form }: { form: DocumentForm }) {
         <p>
           Informa-se que o acompanhamento ocorre em razão de quadro clínico compatível com o diagnóstico CID-10/CID-11:{' '}
           <strong>{form.reimbursementDiagnosis || '___________'}</strong>.
-        </p>
-
-        <p>
-          O primeiro contato se deu dia <strong>{formatDate(form.firstContactDate)}</strong>, com agendamento da 1ª
-          entrevista dia <strong>{formatDate(form.firstInterviewDate)}</strong>, às{' '}
-          <strong>{form.firstInterviewTime || '___h'}</strong>.
         </p>
 
         <p>

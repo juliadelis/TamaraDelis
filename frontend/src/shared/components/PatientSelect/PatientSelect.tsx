@@ -24,10 +24,14 @@ export function PatientSelect({
   disabled = false,
   className = '',
 }: PatientSelectProps) {
+  const sortedPatients = [...patients].sort((a, b) =>
+    a.fullName.localeCompare(b.fullName, 'pt-BR', { sensitivity: 'base' }),
+  );
+
   return (
     <Dropdown
       value={value || null}
-      options={patients}
+      options={sortedPatients}
       optionLabel="fullName"
       optionValue="id"
       onChange={(event) => onChange(event.value || '')}
