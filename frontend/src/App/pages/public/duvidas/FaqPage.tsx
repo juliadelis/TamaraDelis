@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LuMinus, LuPlus } from 'react-icons/lu';
 import { PublicFooter } from '../../../../shared/components/PublicFooter/PublicFooter';
 import { PublicMenu } from '../../../../shared/components/PublicMenu/PublicMenu';
@@ -85,8 +85,21 @@ function FaqAccordion() {
 }
 
 export function FaqPage() {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'Dúvidas sobre Psicoterapia | Psicóloga em Itapetininga';
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
+
   return (
     <div className="relative left-1/2 flex min-h-dvh w-[100vw] -translate-x-1/2 flex-col bg-[#4d5841] text-left">
+      <meta
+        name="description"
+        content="Tire suas dúvidas sobre psicoterapia, primeira sessão, terapia online, frequência, sigilo e atendimento psicológico."
+      />
       <PublicMenu dark />
       <main className="flex-1 px-5 pb-20 pt-16 text-[#fff0de] sm:px-8 md:pb-24 md:pt-20">
         <h1 className="text-center font-inria text-[33px] font-bold leading-tight ">

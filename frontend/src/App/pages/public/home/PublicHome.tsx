@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { AboutSection } from './components/AboutSection';
 // import { BlogSection } from '../../../../shared/components/blog_section/BlogSection';
 import { CareGuideSection } from './components/CareGuideSection';
@@ -11,6 +11,15 @@ import './homeAnimations.css';
 
 export function PublicHome() {
   const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'Psicóloga Tamara Delis | Psicoterapia em Itapetininga e Online';
+
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
 
   useLayoutEffect(() => {
     if (window.location.hash) {
@@ -46,6 +55,10 @@ export function PublicHome() {
 
   return (
     <div className="relative left-1/2 flex min-h-dvh w-[100vw] -translate-x-1/2 flex-col bg-[#a8bfd0] text-left text-[#17232c]">
+      <meta
+        name="description"
+        content="Psicoterapia psicanalítica com Tamara Delis. Atendimento presencial em Itapetininga e Sorocaba e online para adultos, adolescentes e casais."
+      />
       <PublicMenu />
       <main ref={mainRef}>
         <HeroSection />
