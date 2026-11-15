@@ -1,0 +1,41 @@
+@media (prefers-reduced-motion: no-preference) {
+  .home-enter-pending {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .home-enter-visible {
+    animation: home-enter 700ms ease-out backwards;
+  }
+
+  .home-enter-delay-1 {
+    animation-delay: 100ms;
+  }
+
+  .home-enter-delay-2 {
+    animation-delay: 200ms;
+  }
+
+  .home-enter-delay-3 {
+    animation-delay: 300ms;
+  }
+
+  .home-enter:focus,
+  .home-enter:focus-within {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes home-enter {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

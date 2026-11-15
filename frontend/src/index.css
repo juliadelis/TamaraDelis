@@ -1,10 +1,25 @@
-@import "tailwindcss";
 
-:root {
-  
+
+@import url('https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+@import "tailwindcss";
+@theme {
+  --font-inria: "Inria Serif", serif;
 }
 
+html {
+  scroll-padding-top: 9rem;
+}
 
+@media (min-width: 640px) {
+  html {
+    scroll-padding-top: 5rem;
+  }
+}
+
+:root{
+  font-family: "Montserrat", sans-serif;
+}
 
 #root {
   width: 1126px;

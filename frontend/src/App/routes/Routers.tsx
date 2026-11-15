@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
 import { MainLayout } from "../layout";
+import { PublicLayout } from "../layout/PublicLayout";
 import { Home } from "../pages/home/Home";
 import { Agenda } from "../pages/agenda/Agenda";
 import { AgendaDia } from "../pages/agenda/AgendaDia";
@@ -12,7 +13,6 @@ import { NovoPaciente } from "../pages/paciente/NovoPaciente";
 import { EditarProntuario } from "../pages/paciente/EditarProntuario";
 import { Relatorios } from "../pages/relatorios/Relatorios";
 import { Login } from "../pages/login/Login";
-import { PublicHome } from "../pages/public/PublicHome";
 import { PrivacyPolicy, TermsOfService } from "../pages/public/LegalPages";
 import { NoPermission } from "../pages/public/NoPermission";
 import { getAuthToken } from "../../shared/services/auth";
@@ -21,12 +21,29 @@ import { Perfil } from "../pages/perfil/Perfil";
 import { PersonalFinance } from "../pages/perfil/PersonalFinance";
 
 const Documentos = lazy(() => import("../pages/documentos/Documentos"));
+const PublicHome = lazy(() =>
+  import("../pages/public/home/PublicHome").then((module) => ({
+    default: module.PublicHome,
+  }))
+);
 
 export function routerFactory() {
   return createBrowserRouter([
     {
       path: "/",
-      element: <PublicHome />,
+      element: <PublicLayout />,
+      children: [
+        {
+          index: true,
+          element: (
+            <LazyRoute>
+              <PublicHome />
+            </LazyRoute>
+          ),
+        },
+        { path: "politica-de-privacidade", element: <PrivacyPolicy /> },
+        { path: "termos-de-servico", element: <TermsOfService /> },
+      ],
     },
     {
       path: "/",
@@ -54,14 +71,6 @@ export function routerFactory() {
     {
       path: "login",
       element: <Login />,
-    },
-    {
-      path: "politica-de-privacidade",
-      element: <PrivacyPolicy />,
-    },
-    {
-      path: "termos-de-servico",
-      element: <TermsOfService />,
     },
     {
       path: "sem-permissao",
