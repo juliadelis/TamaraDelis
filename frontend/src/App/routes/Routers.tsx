@@ -26,6 +26,11 @@ const PublicHome = lazy(() =>
     default: module.PublicHome,
   }))
 );
+const FaqPage = lazy(() =>
+  import("../pages/public/duvidas/FaqPage").then((module) => ({
+    default: module.FaqPage,
+  }))
+);
 
 export function routerFactory() {
   return createBrowserRouter([
@@ -41,6 +46,7 @@ export function routerFactory() {
             </LazyRoute>
           ),
         },
+        { path: "duvidas", element: <LazyRoute><FaqPage /></LazyRoute> },
         { path: "politica-de-privacidade", element: <PrivacyPolicy /> },
         { path: "termos-de-servico", element: <TermsOfService /> },
       ],

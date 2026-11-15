@@ -13,6 +13,10 @@ export function PublicHome() {
   const mainRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
+    if (window.location.hash) {
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+    }
+
     const main = mainRef.current;
     if (!main || !('IntersectionObserver' in window)) return;
 
