@@ -41,12 +41,12 @@ export function routerFactory() {
         {
           index: true,
           element: (
-            <LazyRoute>
+            <Suspense fallback={null}>
               <PublicHome />
-            </LazyRoute>
+            </Suspense>
           ),
         },
-        { path: "duvidas", element: <LazyRoute><FaqPage /></LazyRoute> },
+        { path: "duvidas", element: <Suspense fallback={null}><FaqPage /></Suspense> },
         { path: "politica-de-privacidade", element: <PrivacyPolicy /> },
         { path: "termos-de-servico", element: <TermsOfService /> },
       ],
