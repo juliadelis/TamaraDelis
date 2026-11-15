@@ -1,10 +1,10 @@
 import { useLayoutEffect, useRef } from 'react';
 import { AboutSection } from './components/AboutSection';
-import { BlogSection } from '../../../../shared/components/blog_section/BlogSection';
+// import { BlogSection } from '../../../../shared/components/blog_section/BlogSection';
 import { CareGuideSection } from './components/CareGuideSection';
 import { ClosingSection } from './components/ClosingSection';
 import { HeroSection } from './components/HeroSection';
-import { HOME_BLOG_POSTS } from '../../../../shared/data/blogPosts';
+// import { HOME_BLOG_POSTS } from '../../../../shared/data/blogPosts';
 import { PublicFooter } from '../../../../shared/components/PublicFooter/PublicFooter';
 import { PublicMenu } from '../../../../shared/components/PublicMenu/PublicMenu';
 import './homeAnimations.css';

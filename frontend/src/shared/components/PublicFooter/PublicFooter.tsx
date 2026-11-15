@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { PUBLIC_NAVIGATION_LINKS } from '../PublicNavigation/publicNavigationLinks';
 
 export function PublicFooter() {
