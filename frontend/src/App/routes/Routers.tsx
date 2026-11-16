@@ -1,24 +1,65 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
 import { MainLayout } from "../layout";
 import { PublicLayout } from "../layout/PublicLayout";
-import { Home } from "../pages/home/Home";
-import { Agenda } from "../pages/agenda/Agenda";
-import { AgendaDia } from "../pages/agenda/AgendaDia";
-import { Financeiro } from "../pages/financeiro/Financeiro";
-import { Paciente } from "../pages/paciente/Paciente";
-import { PacienteDetalhe } from "../pages/paciente/PacienteDetalhe";
-import { NovoPaciente } from "../pages/paciente/NovoPaciente";
-import { EditarProntuario } from "../pages/paciente/EditarProntuario";
-import { Relatorios } from "../pages/relatorios/Relatorios";
-import { Login } from "../pages/login/Login";
 import { PrivacyPolicy, TermsOfService } from "../pages/public/LegalPages";
 import { NoPermission } from "../pages/public/NoPermission";
 import { getAuthToken } from "../../shared/services/auth";
 
-import { Perfil } from "../pages/perfil/Perfil";
-import { PersonalFinance } from "../pages/perfil/PersonalFinance";
+const Home = lazy(() =>
+  import("../pages/home/Home").then((module) => ({ default: module.Home })),
+);
+const Agenda = lazy(() =>
+  import("../pages/agenda/Agenda").then((module) => ({ default: module.Agenda })),
+);
+const AgendaDia = lazy(() =>
+  import("../pages/agenda/AgendaDia").then((module) => ({
+    default: module.AgendaDia,
+  })),
+);
+const Financeiro = lazy(() =>
+  import("../pages/financeiro/Financeiro").then((module) => ({
+    default: module.Financeiro,
+  })),
+);
+const Paciente = lazy(() =>
+  import("../pages/paciente/Paciente").then((module) => ({
+    default: module.Paciente,
+  })),
+);
+const PacienteDetalhe = lazy(() =>
+  import("../pages/paciente/PacienteDetalhe").then((module) => ({
+    default: module.PacienteDetalhe,
+  })),
+);
+const NovoPaciente = lazy(() =>
+  import("../pages/paciente/NovoPaciente").then((module) => ({
+    default: module.NovoPaciente,
+  })),
+);
+const EditarProntuario = lazy(() =>
+  import("../pages/paciente/EditarProntuario").then((module) => ({
+    default: module.EditarProntuario,
+  })),
+);
+const Relatorios = lazy(() =>
+  import("../pages/relatorios/Relatorios").then((module) => ({
+    default: module.Relatorios,
+  })),
+);
+const Login = lazy(() =>
+  import("../pages/login/Login").then((module) => ({ default: module.Login })),
+);
+const Perfil = lazy(() =>
+  import("../pages/perfil/Perfil").then((module) => ({ default: module.Perfil })),
+);
+const PersonalFinance = lazy(() =>
+  import("../pages/perfil/PersonalFinance").then((module) => ({
+    default: module.PersonalFinance,
+  })),
+);
 
 const Documentos = lazy(() => import("../pages/documentos/Documentos"));
 const PublicHome = lazy(() =>
@@ -58,25 +99,25 @@ export function routerFactory() {
         {
           element: <AuthGuard />,
           children: [
-            { path: "home", element: <Home /> },
-            { path: "perfil", element: <Perfil /> },
-            { path: "perfil/financas-pessoais", element: <PersonalFinance /> },
-            { path: "agenda", element: <Agenda /> },
-            { path: "agenda/:date", element: <AgendaDia /> },
+            { path: "home", element: <LazyRoute><Home /></LazyRoute> },
+            { path: "perfil", element: <LazyRoute><Perfil /></LazyRoute> },
+            { path: "perfil/financas-pessoais", element: <LazyRoute><PersonalFinance /></LazyRoute> },
+            { path: "agenda", element: <LazyRoute><Agenda /></LazyRoute> },
+            { path: "agenda/:date", element: <LazyRoute><AgendaDia /></LazyRoute> },
             { path: "documentos", element: <LazyRoute><Documentos /></LazyRoute> },
-            { path: "financeiro", element: <Financeiro /> },
-            { path: "relatorios", element: <Relatorios /> },
-            { path: "pacientes", element: <Paciente /> },
-            { path: "pacientes/novo", element: <NovoPaciente /> },
-            { path: "pacientes/:patientId", element: <PacienteDetalhe /> },
-            { path: "pacientes/:patientId/editar", element: <EditarProntuario /> },
+            { path: "financeiro", element: <LazyRoute><Financeiro /></LazyRoute> },
+            { path: "relatorios", element: <LazyRoute><Relatorios /></LazyRoute> },
+            { path: "pacientes", element: <LazyRoute><Paciente /></LazyRoute> },
+            { path: "pacientes/novo", element: <LazyRoute><NovoPaciente /></LazyRoute> },
+            { path: "pacientes/:patientId", element: <LazyRoute><PacienteDetalhe /></LazyRoute> },
+            { path: "pacientes/:patientId/editar", element: <LazyRoute><EditarProntuario /></LazyRoute> },
           ],
         },
       ],
     },
     {
       path: "login",
-      element: <Login />,
+      element: <LazyRoute><Login /></LazyRoute>,
     },
     {
       path: "sem-permissao",

@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tamara Delis Psicologia</title>
+    <script>
+      if (window.location.pathname === "/") {
+        const banner = document.createElement("link");
+        banner.rel = "preload";
+        banner.as = "image";
+        banner.href = "/img/home/tamara_banner-872.webp";
+        banner.setAttribute(
+          "imagesrcset",
+          "/img/home/tamara_banner-480.webp 480w, /img/home/tamara_banner-872.webp 872w",
+        );
+        banner.setAttribute(
+          "imagesizes",
+          "(min-width: 1280px) 588px, (min-width: 1024px) calc((100vw - 104px) / 2), (min-width: 768px) calc((100vw - 72px) / 2), (min-width: 640px) calc(100vw - 64px), calc(100vw - 40px)",
+        );
+        banner.setAttribute("fetchpriority", "high");
+        document.head.append(banner);
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
