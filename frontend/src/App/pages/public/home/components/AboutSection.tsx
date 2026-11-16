@@ -5,11 +5,13 @@ export function AboutSection() {
       className="mx-auto grid w-full max-w-7xl items-center justify-between gap-8 px-5 py-14 sm:px-8 md:grid-cols-12 md:gap-12 md:py-20 lg:px-12"
     >
       <img
-        src="/img/home/sobre_meu_trabalho.png"
+        src="/img/home/sobre_meu_trabalho.webp"
         alt="Ilustração em espiral azul e terracota"
         loading="lazy"
         decoding="async"
-        className="home-enter mx-auto  w-full rounded-3xl object-cover md:col-span-4"
+        width={327}
+        height={525}
+        className="home-enter mx-auto h-auto w-full rounded-3xl object-cover md:col-span-4"
       />
       <div id="psicoterapia" className="home-enter home-enter-delay-1 scroll-mt-8 col-span-12 md:col-span-8">
         <h2 className="font-inria font-bold text-3xl leading-tight text-[#17232c] sm:text-4xl">

@@ -26,10 +26,14 @@ export function HeroSection() {
 
       <div className="home-enter mb-[-80px] h-[400px] md:h-auto md:mb-0 relative order-first flex items-end justify-center self-end col-span-12 md:order-none md:col-span-6">
         <img
-          src="/img/home/tamara_banner.png"
+          src="/img/home/tamara_banner-872.webp"
+          srcSet="/img/home/tamara_banner-480.webp 480w, /img/home/tamara_banner-872.webp 872w"
+          sizes="(min-width: 1280px) 588px, (min-width: 1024px) calc((100vw - 104px) / 2), (min-width: 768px) calc((100vw - 72px) / 2), (min-width: 640px) calc(100vw - 64px), calc(100vw - 40px)"
           alt="Tamara Delis"
           fetchPriority="high"
-          className="w-auto max-w-full object-contain"
+          width={872}
+          height={1133}
+          className="h-auto w-auto max-w-full object-contain"
         />
        
       </div>
