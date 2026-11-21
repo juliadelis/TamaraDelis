@@ -74,7 +74,7 @@ export function PsicoterapiaPage() {
 
         {/* O que é */}
         <section className="psico-what">
-          <div className="psico-what-inner">
+          <div className="psico-what-inner ">
             <img className="psico-what-image psico-reveal" src="/img/psico/img-2.png" alt="Ilustração abstrata" width="300" height="300" loading="lazy" decoding="async" />
             <div className="psico-reveal">
               <h2 className="font-inria font-bold text-[33px] md:text-[40px] mb-8">O que é a psicoterapia?</h2>

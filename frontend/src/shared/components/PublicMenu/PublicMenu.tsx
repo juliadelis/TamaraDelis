@@ -21,7 +21,7 @@ export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cr
           <a
             key={href}
             href={href}
-            aria-current={(href === '/duvidas' || href === '/sobre-mim') && pathname === href ? 'page' : undefined}
+            aria-current={(href === '/duvidas' || href === '/sobre-mim' || href === '/psicoterapia') && pathname === href ? 'page' : undefined}
             className="shrink-0 rounded-full px-2.5 py-2 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#703a20] aria-[current=page]:font-bold"
           >
             {label}
@@ -70,7 +70,7 @@ export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cr
             <a
               key={href}
               href={href}
-              aria-current={(href === '/duvidas' || href === '/sobre-mim') && pathname === href ? 'page' : undefined}
+              aria-current={(href === '/duvidas' || href === '/sobre-mim' || href === '/psicoterapia') && pathname === href ? 'page' : undefined}
               onClick={() => setIsOpen(false)}
               className={`rounded-md px-3 py-2 text-[16px] focus-visible:outline-2 aria-[current=page]:font-bold ${dark ? 'hover:bg-white/10 focus-visible:outline-[#fff0de]' : 'text-[#28241f] hover:bg-white/50 focus-visible:outline-[#713a20]'}`}
             >
