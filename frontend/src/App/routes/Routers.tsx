@@ -72,6 +72,16 @@ const FaqPage = lazy(() =>
     default: module.FaqPage,
   }))
 );
+const AboutPage = lazy(() =>
+  import("../pages/public/sobre-mim/AboutPage").then((module) => ({
+    default: module.AboutPage,
+  }))
+);
+const PsicoterapiaPage = lazy(() =>
+  import("../pages/public/psicoterapia/PsicoterapiaPage").then((module) => ({
+    default: module.PsicoterapiaPage,
+  }))
+);
 
 export function routerFactory() {
   return createBrowserRouter([
@@ -87,6 +97,8 @@ export function routerFactory() {
             </Suspense>
           ),
         },
+        { path: "sobre-mim", element: <Suspense fallback={null}><AboutPage /></Suspense> },
+        { path: "psicoterapia", element: <Suspense fallback={null}><PsicoterapiaPage /></Suspense> },
         { path: "duvidas", element: <Suspense fallback={null}><FaqPage /></Suspense> },
         { path: "politica-de-privacidade", element: <PrivacyPolicy /> },
         { path: "termos-de-servico", element: <TermsOfService /> },

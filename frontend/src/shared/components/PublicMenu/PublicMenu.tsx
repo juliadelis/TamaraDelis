@@ -3,25 +3,25 @@ import { useLocation } from 'react-router-dom';
 import { WHATSAPP_URL } from '../../data/contact';
 import { PUBLIC_NAVIGATION_LINKS } from '../PublicNavigation/publicNavigationLinks';
 
-export function PublicMenu({ dark = false }: { dark?: boolean }) {
+export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cream?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const { pathname } = useLocation();
 
   return (
-    <header className={`sticky top-0 z-50 mx-auto flex w-full max-w-7xl items-center justify-between px-5 pb-2 pt-4 lg:px-8 ${dark ? 'bg-[#4d5841]' : ''}`}>
+    <header className={`sticky top-0 z-50 mx-auto flex w-full max-w-7xl items-center justify-between px-5 pb-2 pt-4 lg:px-8`}>
       <a href="/#inicio" aria-label="Tamara Delis, início" className="shrink-0">
         <img src={dark ? '/logo.svg' : '/logo_brown.svg'} alt="Tamara Delis Psicologia" className="h-8 w-auto" />
       </a>
 
       <nav
         aria-label="Navegação principal"
-        className="hidden w-fit max-w-full flex-none items-center gap-1 overflow-x-auto rounded-full bg-[#fff0de] px-2 py-1 text-[16px] text-[#28241f] lg:flex lg:justify-center"
+        className={`hidden w-fit max-w-full flex-none items-center gap-1 overflow-x-auto rounded-full px-2 py-1 text-[16px] text-[#28241f] lg:flex lg:justify-center ${cream ? 'bg-[#f5e6d6]' : 'bg-[#fff0de]'}`}
       >
         {PUBLIC_NAVIGATION_LINKS.map(({ label, href }) => (
           <a
             key={href}
             href={href}
-            aria-current={href === '/duvidas' && pathname === href ? 'page' : undefined}
+            aria-current={(href === '/duvidas' || href === '/sobre-mim') && pathname === href ? 'page' : undefined}
             className="shrink-0 rounded-full px-2.5 py-2 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#703a20] aria-[current=page]:font-bold"
           >
             {label}
@@ -63,14 +63,14 @@ export function PublicMenu({ dark = false }: { dark?: boolean }) {
 
       <div
         id="mobile-navigation"
-        className={`${isOpen ? 'flex' : 'hidden'} absolute left-0 right-0 top-full flex-col gap-3 px-5 pb-5 pt-2 shadow-md lg:hidden ${dark ? 'bg-[#4d5841] text-[#fff0de]' : 'bg-[#a8bfd0]'}`}
+        className={`${isOpen ? 'flex' : 'hidden'} absolute left-0 right-0 top-full flex-col gap-3 px-5 pb-5 pt-2 shadow-md lg:hidden ${dark ? 'bg-[#4d5841] text-[#fff0de]' : cream ? 'bg-[#fff0de]' : 'bg-[#a8bfd0]'}`}
       >
         <nav aria-label="Navegação principal mobile" className="flex flex-col">
           {PUBLIC_NAVIGATION_LINKS.map(({ label, href }) => (
             <a
               key={href}
               href={href}
-              aria-current={href === '/duvidas' && pathname === href ? 'page' : undefined}
+              aria-current={(href === '/duvidas' || href === '/sobre-mim') && pathname === href ? 'page' : undefined}
               onClick={() => setIsOpen(false)}
               className={`rounded-md px-3 py-2 text-[16px] focus-visible:outline-2 aria-[current=page]:font-bold ${dark ? 'hover:bg-white/10 focus-visible:outline-[#fff0de]' : 'text-[#28241f] hover:bg-white/50 focus-visible:outline-[#713a20]'}`}
             >

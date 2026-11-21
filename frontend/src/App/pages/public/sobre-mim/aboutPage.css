@@ -1,0 +1,284 @@
+.about-page {
+  background: #fff0de;
+  color: #713a20;
+}
+
+
+
+.about-hero-inner,
+.about-purpose-inner,
+.about-education-inner,
+.about-approach-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.about-hero-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 590px;
+  padding: 48px;
+  overflow: visible;
+}
+
+.about-hero-copy {
+  position: relative;
+  z-index: 1;
+  width: 57%;
+  color: #171411;
+}
+
+
+
+
+
+.about-hero-image {
+  position: absolute;
+  right: -2%;
+  bottom: -40%;
+  width: 58%;
+  height: auto;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+.about-purpose {
+  background: #4d5841;
+  color: #fff0de;
+  position: relative;
+}
+
+.about-purpose-inner {
+  display: grid;
+  grid-template-columns: 1fr 32%;
+  align-items: center;
+  gap: 12%;
+  padding: 75px 48px;
+}
+
+.about-copy {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.about-purpose-image {
+  width: 100%;
+  height: auto;
+  border-radius: 32px;
+}
+
+.about-education-inner {
+  display: grid;
+  grid-template-columns: 48% 52%;
+  padding: 0 48px;
+}
+
+.about-education-intro {
+  padding: 90px 40px 40px 0;
+}
+
+
+.about-timeline {
+  position: relative;
+  display: grid;
+  gap: 90px;
+  padding: 250px 0 100px 36px;
+}
+
+.about-timeline::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: currentColor;
+  content: "";
+  transform-origin: top;
+}
+
+.about-timeline-item {
+  position: relative;
+  max-width: 410px;
+  font-size: clamp(22px, 2.5vw, 32px);
+  line-height: 1.2;
+}
+
+.about-timeline-item::before {
+  position: absolute;
+  top: 0.35em;
+  left: -42px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.about-timeline-year {
+  font-weight: 700;
+}
+
+
+
+.about-approach {
+  background: #c3ced7 url("/img/abt-me/img-bg.png") center / cover no-repeat;
+}
+
+.about-approach-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 650px;
+  padding: 90px 48px;
+}
+
+.about-approach-copy {
+  grid-column: 2;
+  align-self: start;
+  padding-left: 20px;
+}
+
+.about-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  margin-top: 30px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #713a20;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  transition: background-color 200ms;
+}
+
+.about-button:hover {
+  background: #562b18;
+}
+
+.about-button:focus-visible {
+  outline: 2px solid #713a20;
+  outline-offset: 3px;
+}
+
+.about-footer {
+  padding-top: 20px;
+}
+
+.about-footer footer {
+  color: #171411;
+}
+
+.about-footer footer > div {
+  border-color: #a16e51;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .about-pending:not(.about-visible) {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .about-visible {
+    animation: about-enter 750ms ease-out both;
+  }
+
+  .about-timeline.about-pending:not(.about-visible)::before {
+    transform: scaleY(0);
+  }
+
+  .about-timeline.about-visible::before {
+    animation: about-line 1.2s ease-out both;
+  }
+
+  .about-reveal:focus-within {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes about-enter {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes about-line {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+}
+
+@media (max-width: 767px) {
+  .about-hero-inner {
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 56px 24px 0;
+  }
+
+  .about-hero-copy {
+    width: 100%;
+  }
+
+  .about-hero-image {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    align-self: center;
+    width: min(100%, 430px);
+    margin-bottom: -12%;
+  }
+
+  .about-purpose-inner {
+    grid-template-columns: 1fr;
+    gap: 35px;
+    padding: 60px 24px;
+  }
+
+  .about-purpose-image {
+    width: min(100%, 360px);
+    justify-self: center;
+  }
+
+  .about-education-inner {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+  }
+
+  .about-education-intro {
+    padding: 65px 0 40px;
+  }
+
+  .about-timeline {
+    gap: 50px;
+    margin-left: 6px;
+    padding: 20px 0 70px 30px;
+  }
+
+  .about-timeline-item::before {
+    left: -36px;
+  }
+
+  .about-approach {
+    background-position: 30% center;
+  }
+
+  .about-approach-inner {
+    grid-template-columns: 1fr;
+    min-height: 760px;
+    padding: 55px 24px 340px;
+    background: linear-gradient(to bottom, rgba(210, 220, 226, 0.96) 0%, rgba(210, 220, 226, 0.88) 45%, transparent 75%);
+  }
+
+  .about-approach-copy {
+    grid-column: 1;
+    padding-left: 0;
+  }
+
+  .about-footer {
+    padding-top: 50px;
+  }
+}

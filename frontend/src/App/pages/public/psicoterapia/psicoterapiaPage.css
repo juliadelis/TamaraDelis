@@ -1,0 +1,488 @@
+.psico-page {
+  background: #fff0de;
+  color: #17232c;
+  font-family: "Montserrat", sans-serif;
+  position: relative;
+}
+
+.psico-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 800px;
+  background: linear-gradient(to bottom, #2c1810, #3d2820);
+  background-image: url('/img/psico/bg-hero.png');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  pointer-events: none;
+}
+
+
+
+/* Hero Section */
+.psico-hero {
+  background: transparent;
+  color: #fff0de;
+  padding: 180px 48px;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+.psico-hero-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.psico-hero-copy {
+  margin-bottom: 24px;
+}
+
+
+
+
+.psico-hero-text {
+  margin: 20px auto 24px;
+  max-width: 700px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.psico-hero-cta {
+  margin-top: 32px;
+}
+
+.psico-hero-cta a {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #8b4513;
+  color: white;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: background-color 200ms;
+  text-decoration: none;
+}
+
+.psico-hero-cta a:hover {
+  background: #6b3410;
+}
+
+/* O que é */
+.psico-what {
+  background: #4d5841;
+  color: #fff0de;
+  padding: 90px 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.psico-what-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+  gap: 40px;
+}
+
+.psico-what-image {
+  width: 300px;
+  border-radius: 32px;
+  display: block;
+}
+
+
+
+.psico-copy {
+  display: grid;
+  gap: 18px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+/* Como funciona */
+.psico-how {
+  padding: 90px 48px;
+  background: #fff0de;
+}
+
+.psico-how-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.psico-how-header {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 60px;
+  margin-bottom: 60px;
+  align-items: start;
+}
+
+.psico-how-title {
+  font-size: clamp(32px, 3.4vw, 48px);
+  margin: 0;
+  color: #17232c;
+}
+
+.psico-how-description {
+  display: grid;
+  gap: 18px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #17232c;
+}
+
+
+
+.psico-how-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid #6A3710;
+
+}
+
+.psico-how-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 40px 0;
+  align-items: start;
+}
+
+.psico-how-card:not(:last-child) {
+  border-right: 1px solid #6A3710;
+  padding-right: 40px;
+}
+
+.psico-how-card:last-child {
+  padding-left: 40px;
+}
+
+.psico-how-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.psico-how-icon {
+  width: 48px;
+  height: 48px;
+  color: #8b4513;
+  flex-shrink: 0;
+  stroke-width: 1.5;
+  background: #FDDDC5;
+  border-radius: 99999px;
+  padding: 10px;
+}
+
+
+
+
+
+/* Modalidades */
+.psico-modalities {
+  background: url('/img/psico/bg-2.svg') no-repeat top center;
+  background-size: cover;
+  padding: 300px 48px 90px 48px;
+}
+
+.psico-modalities-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+
+.psico-modalities-subtitle {
+  text-align: center;
+  margin-bottom: 48px;
+  color: #17232c;
+
+}
+
+.psico-modalities-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.psico-modalities-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.psico-modalities-card img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+}
+
+.psico-modalities-card-content {
+  padding: 32px;
+}
+
+
+
+.psico-modalities-card-content a {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #8b4513;
+  color: white;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background-color 200ms;
+}
+
+.psico-modalities-card-content a:hover {
+  background: #6b3410;
+}
+
+/* FAQ CTA */
+.psico-faq-cta {
+  background: #4d5841;
+  color: white;
+  padding: 90px 48px;
+  text-align: center;
+}
+
+.psico-faq-cta-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+
+
+
+.psico-faq-cta-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #8b4513;
+  color: white;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 200ms;
+}
+
+.psico-faq-cta-button:hover {
+  background: #6b3410;
+}
+
+/* Um espaço */
+.psico-space {
+  padding: 90px 48px;
+}
+
+.psico-space-inner {
+  max-width: 1280px;
+  margin: 0 auto 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+
+
+
+.psico-space-cards {
+  max-width: 1280px;
+  margin: 0 auto 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.psico-space-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.psico-space-card img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+}
+
+.psico-space-card {
+  padding: 24px;
+}
+
+
+
+.psico-space-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.psico-space-tags button {
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 1px solid #8b4513;
+  color: #8b4513;
+  background: transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 200ms;
+}
+
+.psico-space-tags button:hover {
+  background: #f4d9c5;
+}
+
+.psico-space-cta {
+  text-align: center;
+}
+
+.psico-space-cta a {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #8b4513;
+  color: white;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 200ms;
+}
+
+.psico-space-cta a:hover {
+  background: #6b3410;
+}
+
+.psico-footer {
+  color: #17232c;
+  padding-top: 20px;
+}
+
+/* Animações */
+@media (prefers-reduced-motion: no-preference) {
+  .psico-pending {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .psico-visible {
+    animation: psico-enter 750ms ease-out both;
+  }
+
+  .psico-reveal:nth-child(1).psico-visible {
+    animation-delay: 0ms;
+  }
+
+  .psico-reveal:nth-child(2).psico-visible {
+    animation-delay: 100ms;
+  }
+
+  .psico-reveal:nth-child(3).psico-visible {
+    animation-delay: 200ms;
+  }
+
+  .psico-reveal:nth-child(n+4).psico-visible {
+    animation-delay: 300ms;
+  }
+
+  .psico-reveal:focus-within {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes psico-enter {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .psico-hero {
+    padding: 60px 24px;
+  }
+
+  .psico-what-inner {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .psico-what-image {
+    max-width: 250px;
+    margin: 0 auto;
+  }
+
+  .psico-how {
+    padding: 60px 24px;
+  }
+
+  .psico-how-header {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+
+  .psico-how-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .psico-how-card {
+    padding: 24px 0;
+  }
+
+  .psico-how-card:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid #e0d4c4;
+    padding-right: 0;
+    padding-bottom: 24px;
+  }
+
+  .psico-how-card:last-child {
+    padding-left: 0;
+    padding-top: 24px;
+  }
+
+  .psico-modalities {
+    padding: 60px 24px;
+  }
+
+  .psico-modalities-cards {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .psico-faq-cta {
+    padding: 60px 24px;
+  }
+
+  .psico-space {
+    padding: 60px 24px;
+  }
+
+  .psico-space-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .psico-space-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
