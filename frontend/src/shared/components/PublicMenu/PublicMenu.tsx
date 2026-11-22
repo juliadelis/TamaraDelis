@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WHATSAPP_URL } from '../../data/contact';
-import { PSICOTERAPIA_LINKS, PUBLIC_NAVIGATION_LINKS } from '../PublicNavigation/publicNavigationLinks';
+import { ATENDIMENTOS_LINKS, PSICOTERAPIA_LINKS, PUBLIC_NAVIGATION_LINKS } from '../PublicNavigation/publicNavigationLinks';
+
+const submenus: Record<string, readonly { label: string; href: string }[]> = {
+  '/psicoterapia': PSICOTERAPIA_LINKS,
+  '/atendimentos': ATENDIMENTOS_LINKS,
+};
 
 export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cream?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [desktopSubmenuOpen, setDesktopSubmenuOpen] = useState(false);
-  const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
+  const [desktopSubmenuOpen, setDesktopSubmenuOpen] = useState<string | null>(null);
+  const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<string | null>(null);
   const { pathname } = useLocation();
   const mobileBackground = dark ? 'bg-[#4d5841]' : cream ? 'bg-[#fff0de]' : 'bg-[#a8bfd0]';
 
@@ -21,39 +26,39 @@ export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cr
         aria-label="Navegação principal"
         className={`hidden w-fit max-w-full flex-none items-center gap-1 rounded-full px-2 py-1 text-[16px] text-[#28241f] lg:flex lg:justify-center ${cream ? 'bg-[#f5e6d6]' : 'bg-[#fff0de]'}`}
       >
-        {PUBLIC_NAVIGATION_LINKS.map(({ label, href }) => href === '/psicoterapia' ? (
+        {PUBLIC_NAVIGATION_LINKS.map(({ label, href }) => submenus[href] ? (
           <div
             key={href}
             className="relative flex shrink-0 items-center"
-            onMouseEnter={() => setDesktopSubmenuOpen(true)}
+            onMouseEnter={() => setDesktopSubmenuOpen(href)}
             onMouseLeave={(event) => {
-              if (!event.currentTarget.contains(document.activeElement)) setDesktopSubmenuOpen(false);
+              if (!event.currentTarget.contains(document.activeElement)) setDesktopSubmenuOpen((open) => open === href ? null : open);
             }}
             onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget)) setDesktopSubmenuOpen(false);
+              if (!event.currentTarget.contains(event.relatedTarget)) setDesktopSubmenuOpen((open) => open === href ? null : open);
             }}
             onKeyDown={(event) => {
-              if (event.key === 'Escape' && desktopSubmenuOpen) {
-                setDesktopSubmenuOpen(false);
+              if (event.key === 'Escape' && desktopSubmenuOpen === href) {
+                setDesktopSubmenuOpen(null);
                 event.currentTarget.querySelector('button')?.focus();
               }
             }}
           >
             <button
               type="button"
-              aria-expanded={desktopSubmenuOpen}
-              aria-controls="desktop-psicoterapia-submenu"
-              onClick={() => setDesktopSubmenuOpen((open) => !open)}
+              aria-expanded={desktopSubmenuOpen === href}
+              aria-controls={`desktop-${href.slice(1)}-submenu`}
+              onClick={() => setDesktopSubmenuOpen((open) => open === href ? null : href)}
               className={`rounded-full px-2.5 py-2 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#703a20] ${pathname === href || pathname.startsWith(`${href}/`) ? 'font-bold' : ''}`}
             >
               {label}
             </button>
             <div
-              id="desktop-psicoterapia-submenu"
-              hidden={!desktopSubmenuOpen}
+              id={`desktop-${href.slice(1)}-submenu`}
+              hidden={desktopSubmenuOpen !== href}
               className="absolute left-0 top-full z-50 min-w-64 rounded-2xl bg-[#fff0de] p-2 shadow-lg"
             >
-              {PSICOTERAPIA_LINKS.map((item) => (
+              {submenus[href].map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
@@ -91,7 +96,7 @@ export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cr
         aria-controls="mobile-navigation"
         onClick={() => {
           setIsOpen((open) => !open);
-          setMobileSubmenuOpen(false);
+          setMobileSubmenuOpen(null);
         }}
         className="inline-flex size-12 items-center justify-center rounded-full bg-[#fff0de] text-[#713a20] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#713a20] lg:hidden"
       >
@@ -117,19 +122,19 @@ export function PublicMenu({ dark = false, cream = false }: { dark?: boolean; cr
         className={`${isOpen ? 'flex' : 'hidden'} absolute left-0 right-0 top-full flex-col gap-3 px-5 pb-5 pt-2 shadow-md lg:hidden ${mobileBackground} ${dark ? 'text-[#fff0de]' : ''}`}
       >
         <nav aria-label="Navegação principal mobile" className="flex flex-col">
-          {PUBLIC_NAVIGATION_LINKS.map(({ label, href }) => href === '/psicoterapia' ? (
+          {PUBLIC_NAVIGATION_LINKS.map(({ label, href }) => submenus[href] ? (
             <div key={href}>
               <button
                 type="button"
-                aria-expanded={mobileSubmenuOpen}
-                aria-controls="mobile-psicoterapia-submenu"
-                onClick={() => setMobileSubmenuOpen((open) => !open)}
+                aria-expanded={mobileSubmenuOpen === href}
+                aria-controls={`mobile-${href.slice(1)}-submenu`}
+                onClick={() => setMobileSubmenuOpen((open) => open === href ? null : href)}
                 className={`w-full rounded-md px-3 py-2 text-left text-[16px] focus-visible:outline-2 ${pathname === href || pathname.startsWith(`${href}/`) ? 'font-bold' : ''} ${dark ? 'hover:bg-white/10 focus-visible:outline-[#fff0de]' : 'text-[#28241f] hover:bg-white/50 focus-visible:outline-[#713a20]'}`}
               >
                 {label}
               </button>
-              <div id="mobile-psicoterapia-submenu" hidden={!mobileSubmenuOpen} className="pl-4">
-                {PSICOTERAPIA_LINKS.map((item) => (
+              <div id={`mobile-${href.slice(1)}-submenu`} hidden={mobileSubmenuOpen !== href} className="pl-4">
+                {submenus[href].map((item) => (
                   <a
                     key={item.href}
                     href={item.href}

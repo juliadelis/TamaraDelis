@@ -1,7 +1,7 @@
 import { container, heading } from './styles';
 import type { ModalidadeContent } from './types';
 
-export function Feature({ page }: { page: ModalidadeContent }) {
+export function Feature({ page }: { page: Pick<ModalidadeContent, 'featureImage' | 'featureAlt' | 'featureTitle' | 'featureText'> }) {
   return (
     <section className="bg-[#4d5841] py-16 text-[#fff0de] md:py-24">
       <div className={`${container} grid items-center gap-8 md:grid-cols-2 md:gap-16`}>

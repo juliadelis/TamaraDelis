@@ -87,6 +87,16 @@ const ModalidadePage = lazy(() =>
     default: module.ModalidadePage,
   }))
 );
+const AtendimentosPage = lazy(() =>
+  import("../pages/public/atendimentos/AtendimentosPage").then((module) => ({
+    default: module.AtendimentosPage,
+  }))
+);
+const AtendimentoPage = lazy(() =>
+  import("../pages/public/atendimentos/AtendimentoPage").then((module) => ({
+    default: module.AtendimentoPage,
+  }))
+);
 
 export function routerFactory() {
   return createBrowserRouter([
@@ -106,6 +116,10 @@ export function routerFactory() {
         { path: "psicoterapia", element: <Suspense fallback={null}><PsicoterapiaPage /></Suspense> },
         { path: "psicoterapia/presencial", element: <Suspense fallback={null}><ModalidadePage modalidade="presencial" /></Suspense> },
         { path: "psicoterapia/online", element: <Suspense fallback={null}><ModalidadePage modalidade="online" /></Suspense> },
+        { path: "atendimentos", element: <Suspense fallback={null}><AtendimentosPage /></Suspense> },
+        { path: "atendimentos/adultos", element: <Suspense fallback={null}><AtendimentoPage publico="adultos" /></Suspense> },
+        { path: "atendimentos/adolescentes", element: <Suspense fallback={null}><AtendimentoPage publico="adolescentes" /></Suspense> },
+        { path: "atendimentos/casais", element: <Suspense fallback={null}><AtendimentoPage publico="casais" /></Suspense> },
         { path: "duvidas", element: <Suspense fallback={null}><FaqPage /></Suspense> },
         { path: "politica-de-privacidade", element: <PrivacyPolicy /> },
         { path: "termos-de-servico", element: <TermsOfService /> },
