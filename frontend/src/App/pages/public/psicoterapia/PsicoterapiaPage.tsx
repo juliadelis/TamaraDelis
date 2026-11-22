@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { FiMessageSquare, FiUser } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 import { PublicFooter } from '../../../../shared/components/PublicFooter/PublicFooter';
 import { PublicMenu } from '../../../../shared/components/PublicMenu/PublicMenu';
 import { WHATSAPP_URL } from '../../../../shared/data/contact';
@@ -128,7 +129,7 @@ export function PsicoterapiaPage() {
                 <div className="psico-modalities-card-content">
                   <h3 className="text-[20px] font-semibold mb-4">Psicoterapia presencial</h3>
                   <p className="text-[18px] mb-4">Atendimento psicológico em consultório, num ambiente acolhedor e seguro para conversarmos sobre aquilo que te traz até aqui.</p>
-                  <a href={WHATSAPP_URL}>Saiba mais</a>
+                  <Link to="/psicoterapia/presencial">Saiba mais</Link>
                 </div>
               </div>
               <div className="psico-modalities-card psico-reveal">
@@ -136,7 +137,7 @@ export function PsicoterapiaPage() {
                 <div className="psico-modalities-card-content">
                   <h3 className="text-[20px] font-semibold mb-4">Psicoterapia online</h3>
                   <p className="text-[18px] mb-4">Acompanhamento psicológico por meio digital, com a mesma segurança e qualidade de atendimento do espaço físico.</p>
-                  <a href={WHATSAPP_URL}>Saiba mais</a>
+                  <Link to="/psicoterapia/online">Saiba mais</Link>
                 </div>
               </div>
             </div>

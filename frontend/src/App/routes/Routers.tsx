@@ -82,6 +82,11 @@ const PsicoterapiaPage = lazy(() =>
     default: module.PsicoterapiaPage,
   }))
 );
+const ModalidadePage = lazy(() =>
+  import("../pages/public/psicoterapia/ModalidadePage").then((module) => ({
+    default: module.ModalidadePage,
+  }))
+);
 
 export function routerFactory() {
   return createBrowserRouter([
@@ -99,6 +104,8 @@ export function routerFactory() {
         },
         { path: "sobre-mim", element: <Suspense fallback={null}><AboutPage /></Suspense> },
         { path: "psicoterapia", element: <Suspense fallback={null}><PsicoterapiaPage /></Suspense> },
+        { path: "psicoterapia/presencial", element: <Suspense fallback={null}><ModalidadePage modalidade="presencial" /></Suspense> },
+        { path: "psicoterapia/online", element: <Suspense fallback={null}><ModalidadePage modalidade="online" /></Suspense> },
         { path: "duvidas", element: <Suspense fallback={null}><FaqPage /></Suspense> },
         { path: "politica-de-privacidade", element: <PrivacyPolicy /> },
         { path: "termos-de-servico", element: <TermsOfService /> },

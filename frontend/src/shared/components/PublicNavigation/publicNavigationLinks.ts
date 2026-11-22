@@ -7,3 +7,9 @@ export const PUBLIC_NAVIGATION_LINKS = [
   // { label: 'Conteúdos', href: '#conteudos' },
   { label: 'Contato', href: '#contato' },
 ] as const;
+
+export const PSICOTERAPIA_LINKS = [
+  { label: 'Psicoterapia psicanalítica', href: '/psicoterapia' },
+  { label: 'Psicoterapia presencial', href: '/psicoterapia/presencial' },
+  { label: 'Psicoterapia online', href: '/psicoterapia/online' },
+] as const;

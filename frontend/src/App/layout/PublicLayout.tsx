@@ -1,5 +1,5 @@
 import { lazy, Suspense, useLayoutEffect, useRef } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { WHATSAPP_PHONE_NUMBER } from "../../shared/data/contact";
 
 const FloatingWhatsApp = lazy(() =>
@@ -10,6 +10,13 @@ const FloatingWhatsApp = lazy(() =>
 
 export function PublicLayout() {
   const whatsappRef = useRef<HTMLDivElement>(null);
+  const { pathname, hash } = useLocation();
+
+  useLayoutEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash]);
 
   useLayoutEffect(() => {
     const container = whatsappRef.current;
