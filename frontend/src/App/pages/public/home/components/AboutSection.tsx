@@ -13,7 +13,7 @@ export function AboutSection() {
         height={525}
         className="home-enter mx-auto h-auto w-full rounded-3xl object-cover md:col-span-4"
       />
-      <div id="psicoterapia" className="home-enter home-enter-delay-1 scroll-mt-8 col-span-12 md:col-span-8">
+      <div id="psicoterapia" className="home-enter home-enter-delay-1 min-w-0 scroll-mt-8 md:col-span-8">
         <h2 className="font-inria font-bold text-3xl leading-tight text-[#17232c] sm:text-4xl">
           Sobre meu trabalho
         </h2>

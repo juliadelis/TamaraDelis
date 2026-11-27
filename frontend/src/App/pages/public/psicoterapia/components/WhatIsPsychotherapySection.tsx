@@ -14,7 +14,7 @@ export function WhatIsPsychotherapySection() {
         <div className="psico-reveal">
           <h2 className="font-inria mb-8 text-[33px] font-bold md:text-[40px]">O que é a psicoterapia?</h2>
           <div className="psico-copy">
-            <p className="text-[18px]">A Psicoterapia Psicanalítica considera tanto àquilo que conseguimos reconhecer como àquilo que se mostra encobrindo-se à consciência.</p>
+            <p className="text-[18px]">A Psicoterapia Psicanalítica considera tanto aquilo que conseguimos reconhecer quanto aquilo que se manifesta encoberto à consciência.</p>
             <p className="text-[18px]">Ao longo do processo, podem-se abrir caminhos de elaboração de conflitos internos e experiências que continuam produzindo efeitos no presente.</p>
           </div>
         </div>
